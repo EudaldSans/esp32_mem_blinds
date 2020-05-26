@@ -1,0 +1,4 @@
+[submodule "simon"]
+	path = simon
+	url = ssh://git@git.simon-cloud.com:27/rainbow/esp32_common.git
+	branch = develop
