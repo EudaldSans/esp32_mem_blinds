@@ -1,0 +1,6 @@
+[mapping:driver]
+archive: libdriver.a
+entries:
+	timer (noflash_text)
+	i2s (noflash_text)
+	rtc_module (noflash_text)

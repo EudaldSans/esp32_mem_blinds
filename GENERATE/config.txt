@@ -1,0 +1,7 @@
+version = 2100xxxx-030_0.0.1
+
+# ESP32 files
+ESP32_boot = ESP32_boot.bin
+ESP32_app = mem-blinds.bin
+
+# port, address, name, boot_file, address_offset, boot_delay, app_file, checksum_offset
