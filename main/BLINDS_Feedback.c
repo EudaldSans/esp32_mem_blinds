@@ -22,6 +22,7 @@
 
 #include "MEM_Main.h"
 #include "BLINDS_Button.h"
+#include "BLINDS_Load.h"
 
 /* DEFINES */
 /* ------- */
@@ -61,20 +62,35 @@ void _feedback_signal_Task(void * xParams)
     {
         if (TMR_GetPollTimeRunning(&xTimerSignal) == true) {       // Wait here while timer is running
             TMR_GetPollTimeElapsed(&xTimerSignal);
-        } else if ((SRELAY_GetStatus() == false) && (METER_GetMaxCurrentDetected() == true)) {
-            LED_Blink(&xLedFront, SIGNAL_OVERCURRENT_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_OVERCURRENT_ON, SIGNAL_OVERCURRENT_OFF, false);
-        // } else if ((SRELAY_GetStatus() == false) && (METER_GetOverPowerDetected() == true)) {
-        //     LED_Blink(&xLedFront, 1, LED_BLINK_ALWAYS, 500, 500, false);
         } else if (MEM_GetStatus() == MEM_STATUS_HIDE) {
-            LED_Blink(&xLedFront, SIGNAL_OFFLINE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_OFFLINE_ON, SIGNAL_OFFLINE_OFF, false);
-        } else if (xIdleSignal == FEEDBACK_IDLE_OFF) {
-            LED_Off(&xLedFront);
+            LED_Off(&xLedUp);
+            LED_Blink(&xLedDown, SIGNAL_OFFLINE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_OFFLINE_ON, SIGNAL_OFFLINE_OFF, false);
+        } else if (LOAD_IsCalibrating() == true) {
+            LED_Blink(&xLedUp, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
+            LED_Blink(&xLedDown, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
         } else if (xIdleSignal == FEEDBACK_IDLE_ON) {
-            LED_On(&xLedFront, (SRELAY_GetStatus() == true) ? 1 : 0.5);
-        } else if (xIdleSignal == FEEDBACK_IDLE_STATUS) {
-            if (SRELAY_GetStatus() == true) LED_On(&xLedFront, 1);
+            if (LOAD_IsGoingUp() == true) {
+                LED_Off(&xLedDown);
+                LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+            } else if (LOAD_IsGoingDown() == true) {
+                LED_Off(&xLedUp);
+                LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+            } else {
+                LED_On(&xLedUp, 20); LED_On(&xLedDown, 20);
+            }
+        } else if (xIdleSignal == FEEDBACK_IDLE_ON) {
+            if (LOAD_IsGoingUp() == true) {
+                LED_Off(&xLedDown);
+                LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+            } else if (LOAD_IsGoingDown() == true) {
+                LED_Off(&xLedUp);
+                LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+            } else {
+                LED_On(&xLedUp, 20); LED_On(&xLedDown, 20);
+            }
         } else {
-            LED_Blink(&xLedFront, SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
+            LED_Off(&xLedUp);
+            LED_Blink(&xLedDown, SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
         }
 
         TMR_delay(100*TIMER_MSEG);
@@ -83,14 +99,12 @@ void _feedback_signal_Task(void * xParams)
 
 bool FEEDBACK_Init(int iCore)
 {
-float fMax;
-
     // ESP_LOGI(TAG_FEEDBACK, "Starting feedback task");
     MTX_Config(&xFeedbackMtx, MTX_DEF);
     NVS_Init();
     if (NVS_ReadInt8(NVM_LED_IDLE_SIGNAL, (uint8_t*)&xIdleSignal) == false) xIdleSignal = DEFAULT_IDLE_SIGNAL;
-    if (LED_ConfigSTD(&xLedUp, PIN_LED, false, fMax, FADETIME_LEDS) == false) return false;
-    if (LED_ConfigSTD(&xLedDown, PIN_LED, false, fMax, FADETIME_LEDS) == false) return false;
+    if (LED_ConfigSTD(&xLedUp, PIN_LED_UP, false, FADETIME_LEDS) == false) return false;
+    if (LED_ConfigSTD(&xLedDown, PIN_LED_DOWN, false, FADETIME_LEDS) == false) return false;
     return xTaskCreatePinnedToCore(_feedback_signal_Task, "feedback_task", 2048, NULL, 5, NULL, iCore);
     return true;	
 }

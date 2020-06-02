@@ -17,6 +17,7 @@
 #include "MEM_Main.h"
 #include "BLINDS_Device.h"
 #include "BLINDS_Feedback.h"
+#include "BLINDS_Load.h"
 
 /* DEFINES */
 /* ------- */
@@ -59,11 +60,14 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
                                 break;
 
         case PULSE_SHORT:       if (bLockButton == false) {
-                                    FEEDBACK_CustomSignal(100, 0, 0, 5000);
                                     if (bCompleted) {
-                                        ESP_LOGI(TAG_BUTTON_UP, "PULSE TOGGLE");
-                                        SRELAY_Toggle();
-                                        if (SRELAY_GetStatus() == false) FEEDBACK_CustomSignal(100, 0, 0, 1000); else FEEDBACK_CustomSignal(100, 0, 0, 5000);
+                                        if (LOAD_IsStopped() == true) {
+                                            ESP_LOGI(TAG_BUTTON_UP, "PULSE UP");
+                                            LOAD_Open();
+                                        } else {
+                                            ESP_LOGI(TAG_BUTTON_UP, "PULSE STOP");
+                                            LOAD_Stop();
+                                        }
                                     }
                                 } else {
                                     ESP_LOGW(TAG_BUTTON_UP, "warning button is locked");
@@ -108,11 +112,14 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
                                 break;
 
         case PULSE_SHORT:       if (bLockButton == false) {
-                                    FEEDBACK_CustomSignal(100, 0, 0, 5000);
                                     if (bCompleted) {
-                                        ESP_LOGI(TAG_BUTTON_DOWN, "PULSE TOGGLE");
-                                        SRELAY_Toggle();
-                                        if (SRELAY_GetStatus() == false) FEEDBACK_CustomSignal(100, 0, 0, 1000); else FEEDBACK_CustomSignal(100, 0, 0, 5000);
+                                        if (LOAD_IsStopped() == true) {
+                                            ESP_LOGI(TAG_BUTTON_DOWN, "PULSE DOWN");
+                                            LOAD_Close();
+                                        } else {
+                                            ESP_LOGI(TAG_BUTTON_DOWN, "PULSE STOP");
+                                            LOAD_Stop();
+                                        }
                                     }
                                 } else {
                                     ESP_LOGW(TAG_BUTTON_DOWN, "warning button is locked");
