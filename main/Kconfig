@@ -1,0 +1,15 @@
+menu "FACTORY_TEST"
+    choice BOARD
+	bool "targeted hw"
+	default MEM_SWITCH
+    config BOARD_MEM_BLINDS
+	bool "MEM Blinds"
+    config BOARD_LOLIN
+	bool "LOLIN dev board"
+    config BOARD_CUSTOM
+	bool "CUSTOM" 
+    endchoice	
+    config STACK_FACTORY_TESTING
+        int "Stack assigned for the factory test task"
+        default 8192
+endmenu
