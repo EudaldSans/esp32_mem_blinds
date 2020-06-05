@@ -9,11 +9,9 @@
 
 /* DEFINES */
 /* ------- */
-#define FACTORY_TEST_STEP0_SSID         "raconet"
-#define FACTORY_TEST_STEP0_PSK          "lamivol99Osos"
-// #define FACTORY_TEST_STEP0_SSID         "switch_mem_fase_0"
-// #define FACTORY_TEST_STEP0_PSK          "1234567890"
-#define FACTORY_TEST_STEP1_SSID         "switch_mem_fase_1"
+#define FACTORY_TEST_STEP0_SSID         "blinds_mem_fase_0"
+#define FACTORY_TEST_STEP0_PSK          "1234567890"
+#define FACTORY_TEST_STEP1_SSID         "blinds_mem_fase_1"
 #define FACTORY_TEST_STEP1_PSK          "1234567890"
 #define FACTORY_TEST_HTTP_SERVER_ID     4 
 #define FACTORY_TEST_HTTP_PORT          8000
