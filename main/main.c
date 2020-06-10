@@ -14,6 +14,9 @@
 
 #include "MEM_Main.h"
 #include "BLINDS_Device.h"
+#include "BLINDS_Button.h"
+#include "BLINDS_Feedback.h"
+#include "BLINDS_Load.h"
 
 #include "ges_debug.h"
 
@@ -70,6 +73,9 @@ esp_chip_info_t chip_info;
     fflush(stdout);
 
     if (MEM_StartComs(0, DEVICE_SetCmd, DEVICE_GetCmd, NULL, DEVICE_Reset) == false) ESP_LOGE(TAG_MAIN, "Error creating MEM Wireless coms\n");
+    if (LOAD_Init(1) == false) ESP_LOGE(TAG_MAIN, "Error starting relays management");
+    if (BUTTON_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting buttons management");
+    if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
 
     DEBUG_Start();
 }

@@ -1,6 +1,8 @@
 [mapping:driver]
 archive: libdriver.a
 entries:
-	timer (noflash_text)
-	i2s (noflash_text)
-	rtc_module (noflash_text)
+    timer (noflash_text)
+    i2s (noflash_text)
+    i2s:I2S (noflash)
+    gpio (noflash_text)
+    rtc_module (noflash_text)
