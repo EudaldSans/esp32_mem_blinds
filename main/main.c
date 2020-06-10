@@ -17,6 +17,7 @@
 #include "BLINDS_Button.h"
 #include "BLINDS_Feedback.h"
 #include "BLINDS_Load.h"
+#include "factory_testing.h"
 
 #include "ges_debug.h"
 
@@ -72,10 +73,14 @@ esp_chip_info_t chip_info;
     printf("********************************\n");
     fflush(stdout);
 
-    if (MEM_StartComs(0, DEVICE_SetCmd, DEVICE_GetCmd, NULL, DEVICE_Reset) == false) ESP_LOGE(TAG_MAIN, "Error creating MEM Wireless coms\n");
-    if (LOAD_Init(1) == false) ESP_LOGE(TAG_MAIN, "Error starting relays management");
-    if (BUTTON_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting buttons management");
-    if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
+    // if(TEST_IsFactoryTestPassed() == true) {
+        if (MEM_StartComs(0, DEVICE_SetCmd, DEVICE_GetCmd, NULL, DEVICE_Reset) == false) ESP_LOGE(TAG_MAIN, "Error creating MEM Wireless coms\n");
+        if (LOAD_Init(1) == false) ESP_LOGE(TAG_MAIN, "Error starting relays management");
+        if (BUTTON_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting buttons management");
+        if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
+    // } else {
+    //     if (TEST_FactoryTestStart() == false) ESP_LOGE(TAG_MAIN, "Error starting test task");
+    // }
 
     DEBUG_Start();
 }
