@@ -60,6 +60,7 @@ void _feedback_signal_Task(void * xParams)
 {
     while (1)
     {
+        MTX_Lock(&xFeedbackMtx);
         if (TMR_GetPollTimeRunning(&xTimerSignal) == true) {       // Wait here while timer is running
             TMR_GetPollTimeElapsed(&xTimerSignal);
         } else if (MEM_GetStatus() == MEM_STATUS_HIDE) {
@@ -78,7 +79,7 @@ void _feedback_signal_Task(void * xParams)
             } else {
                 LED_On(&xLedUp, 20); LED_On(&xLedDown, 20);
             }
-        } else if (xIdleSignal == FEEDBACK_IDLE_ON) {
+        } else if (xIdleSignal == FEEDBACK_IDLE_OFF) {
             if (LOAD_IsGoingUp() == true) {
                 LED_Off(&xLedDown);
                 LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
@@ -86,12 +87,13 @@ void _feedback_signal_Task(void * xParams)
                 LED_Off(&xLedUp);
                 LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
             } else {
-                LED_On(&xLedUp, 20); LED_On(&xLedDown, 20);
+                LED_Off(&xLedUp); LED_Off(&xLedDown);
             }
         } else {
             LED_Off(&xLedUp);
             LED_Blink(&xLedDown, SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
         }
+        MTX_Unlock(&xFeedbackMtx);
 
         TMR_delay(100*TIMER_MSEG);
     }
@@ -103,8 +105,8 @@ bool FEEDBACK_Init(int iCore)
     MTX_Config(&xFeedbackMtx, MTX_DEF);
     NVS_Init();
     if (NVS_ReadInt8(NVM_LED_IDLE_SIGNAL, (uint8_t*)&xIdleSignal) == false) xIdleSignal = DEFAULT_IDLE_SIGNAL;
-    if (LED_ConfigSTD(&xLedUp, PIN_LED_UP, false, FADETIME_LEDS) == false) return false;
-    if (LED_ConfigSTD(&xLedDown, PIN_LED_DOWN, false, FADETIME_LEDS) == false) return false;
+    if (LED_ConfigSTD(&xLedUp, PIN_LED_UP, true, FADETIME_LEDS) == false) return false;
+    if (LED_ConfigSTD(&xLedDown, PIN_LED_DOWN, true, FADETIME_LEDS) == false) return false;
     return xTaskCreatePinnedToCore(_feedback_signal_Task, "feedback_task", 2048, NULL, 5, NULL, iCore);
     return true;	
 }
@@ -118,14 +120,14 @@ void FEEDBACK_CustomSignal(float fLum, uint16_t uiTimeOn, uint16_t uiTimeOff, ui
     LED_Off(&xLedUp);
     if (!fLum) {
         LED_Off(&xLedDown);
-    } else if ((uiTimeOn) && (uiTimeOff) && ((uiTimeOn+uiTimeOff) < uiTimeMs)) { 
+    } else if ((uiTimeOn) && (uiTimeOff) && ((uiTimeOn+uiTimeOff)<=uiTimeMs)) { 
         LED_Blink(&xLedDown, fLum, uiTimeMs/(uiTimeOn+uiTimeOff), uiTimeOn, uiTimeOff, false);
     } else { 
         LED_On(&xLedDown, fLum);
     }
         
     TMR_SetPollTimer(&xTimerSignal, uiTimeMs*TIMER_MSEG);
-    MTX_Lock(&xFeedbackMtx);
+    MTX_Unlock(&xFeedbackMtx);
 }
 
 void FEEDBACK_OfflineSignal(void)
@@ -140,7 +142,11 @@ void FEEDBACK_InclusionSignal(void)
 
 void FEEDBACK_CalibratingSignal(void)
 {
-
+    MTX_Lock(&xFeedbackMtx);
+    LED_Blink(&xLedUp, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
+    LED_Blink(&xLedDown, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
+    TMR_SetPollTimer(&xTimerSignal, SIGNAL_CALIBRATE_DURATION*TIMER_MSEG);
+    MTX_Unlock(&xFeedbackMtx);
 }
 
 void FEEDBACK_ErrorSignal(void)
