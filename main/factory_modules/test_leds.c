@@ -49,7 +49,7 @@ bool LedsTest_Init(uint8_t uiCore)
 
 int LedsTest_GetMax(int iLed)
 {
-    double max;
+    float max;
 
     if(iLed<N_LEDS){
         LED_GetMaxBrightnessSTD(&(xLeds[iLed]), &max);
@@ -75,7 +75,7 @@ bool LedsTest_SetMax(int iLed, int iMaxVal)
 int LedsTest_GetVal(int iLed)
 {
     if(iLed<N_LEDS){
-        return (int)(xLeds[iLed].dBrightness * 100.0);
+        return (int)(xLeds[iLed].fBrightness * 100.0);
     }
     else{
         return 0;
@@ -88,7 +88,7 @@ bool LedsTest_SetVal(int iLed, int iVal)
     bool ret = true;
 
     if(iLed < N_LEDS){
-        LED_On(&xLeds[iLed], (double)(iVal/100.0));
+        LED_On(&xLeds[iLed], (double)(iVal/100.0), false);
     }
     else{
         ret = false;
