@@ -41,7 +41,7 @@ bool LedsTest_Init(uint8_t uiCore)
         LED_ConfigSTD(&xLeds[0], PIN_LED_UP, true, FADETIME_LEDS);
         LED_ConfigSTD(&xLeds[1], PIN_LED_DOWN, true, FADETIME_LEDS);
         for(int i=0; i<N_LEDS; i++){
-            LedsTest_SetVal(i, 0);
+        LED_Blink(&xLeds[i],SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
         }
     #endif
     return true;	

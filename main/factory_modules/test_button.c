@@ -9,8 +9,10 @@
 /* INCLUDES */
 /* -------- */
 #include "test_button.h"
+#include "factory_testing.h"
 
 #include "esp_log.h"
+#include "ges_wifi.h"
 #include <stddef.h>
 
 /* DEFINES */
@@ -43,6 +45,8 @@ typedef struct ButtonPulse_s {
 /* INTERNAL VARIABLES */
 /* ------------------ */
 static PULSE_OBJ xButtons[N_BUTTONS];
+WIFI_MODES mode_managed = WIFI_MODE_MANAGED;
+bool mode_ap = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
@@ -51,7 +55,17 @@ ButtonPulse_t pulsations[N_BUTTONS];
 
 /* CODE */
 /* ---- */
+static void start_ap_mode(){
+    ESP_LOGI(TAG_BUTTON, "Start "FACTORY_TEST_AP_SSID" AP");
+    WIFI_Disable();
+    WIFI_Init(WIFI_MODE_APS, FACTORY_TEST_AP_SSID, FACTORY_TEST_AP_PSK);      
+    mode_ap = true;
+}
+
 void _test_button_callback(size_t i, bool bCompleted, uint64_t uiTime){
+    if(bCompleted && (GPULSE_TimeToPulseType(uiTime)) &&  WIFI_IsConnected(&mode_managed) == false && mode_ap == false){
+        start_ap_mode();
+    }
 #if defined(CONFIG_BOARD_MEM_BLINDS) || defined(CONFIG_BOARD_LOLIN)
     if (bCompleted == false) return;
     switch (GPULSE_TimeToPulseType(uiTime)) {
