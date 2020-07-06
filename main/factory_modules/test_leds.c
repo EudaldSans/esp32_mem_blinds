@@ -41,7 +41,7 @@ bool LedsTest_Init(uint8_t uiCore)
         LED_ConfigSTD(&xLeds[0], PIN_LED_UP, true, FADETIME_LEDS);
         LED_ConfigSTD(&xLeds[1], PIN_LED_DOWN, true, FADETIME_LEDS);
         for(int i=0; i<N_LEDS; i++){
-            LedsTest_SetVal(i, 0);
+        LED_Blink(&xLeds[i],SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
         }
     #endif
     return true;	
@@ -49,7 +49,7 @@ bool LedsTest_Init(uint8_t uiCore)
 
 int LedsTest_GetMax(int iLed)
 {
-    double max;
+    float max;
 
     if(iLed<N_LEDS){
         LED_GetMaxBrightnessSTD(&(xLeds[iLed]), &max);
@@ -75,7 +75,7 @@ bool LedsTest_SetMax(int iLed, int iMaxVal)
 int LedsTest_GetVal(int iLed)
 {
     if(iLed<N_LEDS){
-        return (int)(xLeds[iLed].dBrightness * 100.0);
+        return (int)(xLeds[iLed].fBrightness * 100.0);
     }
     else{
         return 0;
@@ -88,7 +88,7 @@ bool LedsTest_SetVal(int iLed, int iVal)
     bool ret = true;
 
     if(iLed < N_LEDS){
-        LED_On(&xLeds[iLed], (double)(iVal/100.0));
+        LED_On(&xLeds[iLed], (double)(iVal/100.0), false);
     }
     else{
         ret = false;

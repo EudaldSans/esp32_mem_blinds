@@ -3,6 +3,8 @@
 
 /* INCLUDES */
 /* -------- */
+#include "MEM_Definitions.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 

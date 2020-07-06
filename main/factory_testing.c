@@ -13,6 +13,7 @@
 #include "cJSON.h"
 #include "esp_log.h"
 
+#include "MEM_Installation.h"
 #include "ges_wifi.h"
 #include "ges_http_server.h"
 #include "ges_nvs.h"
@@ -37,8 +38,8 @@ typedef enum {
 /* ------- */
 
 //Useful constants
-#define FACTORY_TEST_NVS_KEY_STATE      "PROD_TEST_STATE"
-#define FACTORY_TEST_NVS_KEY_RESETS     "PROD_TEST_RESET"
+#define FACTORY_TEST_NVS_KEY_STATE      "TEST_STATE"
+#define FACTORY_TEST_NVS_KEY_RESETS     "TEST_RESET"
 #define MAC_BYTES_LEN                   6
 
 //Preprocesor snippets
@@ -116,13 +117,16 @@ bool _factorytest_webStart(SERVER_OBJ* xWebUi)
 
 TEST_STEPS factorytest_getState(void)
 {
+    NVS_Init();
+    bool res;
     uint16_t uiState = 0;
-    NVS_ReadInt16(FACTORY_TEST_NVS_KEY_STATE, &uiState);
-    ESP_LOGI(TAG_FACTORY_TESTING, "getState() : %d", uiState);
+    res = NVS_ReadInt16(FACTORY_TEST_NVS_KEY_STATE, &uiState);
+    ESP_LOGI(TAG_FACTORY_TESTING, "getState() : %d (%s)", (int)uiState, res ? "OK" : "ERROR");
     return (TEST_STEPS)uiState;
 }
 
 bool factorytest_setState(TEST_STEPS step){
+    NVS_Init();
     bool res = false;
     res = NVS_WriteInt16(FACTORY_TEST_NVS_KEY_STATE, (uint16_t)step);
     ESP_LOGI(TAG_FACTORY_TESTING, "setState(%d) : %s", step, res ? "true": "false");
@@ -131,6 +135,7 @@ bool factorytest_setState(TEST_STEPS step){
 }
 
 void _reinitStep(){
+    NVS_Init();
     resets = 1;
     NVS_WriteInt16(FACTORY_TEST_NVS_KEY_RESETS, resets);
 }
@@ -439,17 +444,7 @@ void __URI_get_info(httpd_req_t * xReq) {
     char error_code[] = "undefined";
     cJSON * xPayload = cJSON_CreateObject();
 
-    len = sizeof(hwId);
-    len_ptr = &len;
-    res = NVS_ReadStr(KEY_SERIAL_CODE, hwId, len_ptr);
-    if(!res)
-        strcpy(hwId, error_code);
 
-    len = sizeof(secret);
-    len_ptr = &len;
-    res = NVS_ReadStr(KEY_CLIENT_SECRET, secret, len_ptr);
-    if(!res)
-        strcpy(secret, error_code);
 
     res = NVS_ReadInt16(KEY_DATE, &date);
     if(!res)
@@ -465,8 +460,8 @@ void __URI_get_info(httpd_req_t * xReq) {
     uiatoa(macBytes, MAC_BYTES_LEN, mac, sizeof(mac));
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /info\nsecret : %s\nhwId : %s", secret, hwId);
 
-    cJSON_AddItemToObject(xPayload, "hwId", cJSON_CreateString(hwId));
-    cJSON_AddItemToObject(xPayload, "secret", cJSON_CreateString(secret));
+    cJSON_AddItemToObject(xPayload, "hwId", cJSON_CreateString(INST_GetInstallationId()));
+    cJSON_AddItemToObject(xPayload, "secret", cJSON_CreateString(INST_GetInstallationToken()));
     cJSON_AddNumberToObject(xPayload, "resetsDone", currentResets);
     cJSON_AddItemToObject(xPayload, "mac", cJSON_CreateString(mac));
     cJSON_AddNumberToObject(xPayload, "date", date);
@@ -486,6 +481,7 @@ void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s){
 void __URI_post_info(httpd_req_t * xReq) {
     char cData[500];
     size_t bSize;
+    size_t len;
     int bLenGetData;
     bool result = false;
     bool ret = false;
@@ -517,12 +513,14 @@ void __URI_post_info(httpd_req_t * xReq) {
 
     if(secret != NULL ){
         ESP_LOGI(TAG_FACTORY_TESTING, "set secret : %s", secret);
-        ret = NVS_WriteStr(KEY_CLIENT_SECRET, secret);
+        len = strlen(secret);
+        ret = INST_SetClientSecret(secret, len);
         result = ret || result;
     }
     if(hwId != NULL ){
         ESP_LOGI(TAG_FACTORY_TESTING, "set hwId : %s", hwId);
-        ret = NVS_WriteStr(KEY_SERIAL_CODE , hwId);
+        len = strlen(hwId);
+        ret = INST_SetClientId(hwId, len);
         result = ret || result;
     }
 
@@ -608,16 +606,22 @@ cJSON * xPayload = cJSON_CreateObject();
 
 bool TEST_FactoryTestStart(void)
 {
-    TEST_STEPS state = factorytest_getState();
     NVS_Init();
+    TEST_STEPS state = factorytest_getState();
     factorytest_updateNVS();
     ESP_LOGI(TAG_FACTORY_TESTING, "TEST_FactoryTestStart(%s)", _state_to_string(state));
-    if(state == TEST_STEP0)
+    if(state == TEST_STEP0){
         WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK);
-    else if(state == TEST_STEP1)
+        ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP0_SSID);
+    }
+    else if(state == TEST_STEP1){
         WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP1_SSID, FACTORY_TEST_STEP1_PSK);
-    else
+        ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP1_SSID);
+    }
+    else{
         WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK);
+        ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP0_SSID);
+    }
     ButtonTest_Init(1);
     RelayTest_Init(1);
     MeterTest_Init(1);
@@ -632,7 +636,11 @@ void factorytest_updateNVS(){
     NVS_WriteInt16(FACTORY_TEST_NVS_KEY_RESETS, resets);
 }
 
-bool TEST_IsFactoryTestPassed(void)             { return (factorytest_getState() == TEST_PASSED); }
+bool TEST_IsFactoryTestPassed(void){ 
+    NVS_Init();
+    bool testsPassed = (factorytest_getState() == TEST_PASSED);
+    return testsPassed;
+}
 
 
 

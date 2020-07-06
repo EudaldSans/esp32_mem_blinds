@@ -90,7 +90,7 @@ void _feedback_signal_Task(void * xParams)
                 LED_Off(&xLedUp, false); LED_Off(&xLedDown, false);
             }
         } else {
-            LED_Off(&xLedUp);
+            LED_Off(&xLedUp, false);
             LED_Blink(&xLedDown, SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
         }
         MTX_Unlock(&xFeedbackMtx);
@@ -117,13 +117,13 @@ void FEEDBACK_CustomSignal(float fLum, uint16_t uiTimeOn, uint16_t uiTimeOff, ui
 
     MTX_Lock(&xFeedbackMtx);
     fLum = (fLum <= 0) ? 0 : (fLum > 1) ? 1 : fLum/100;
-    LED_Off(&xLedUp);
+    LED_Off(&xLedUp, false);
     if (!fLum) {
-        LED_Off(&xLedDown);
+        LED_Off(&xLedDown, false);
     } else if ((uiTimeOn) && (uiTimeOff) && ((uiTimeOn+uiTimeOff)<=uiTimeMs)) { 
         LED_Blink(&xLedDown, fLum, uiTimeMs/(uiTimeOn+uiTimeOff), uiTimeOn, uiTimeOff, false);
     } else { 
-        LED_On(&xLedDown, fLum);
+        LED_On(&xLedDown, fLum, false);
     }
         
     TMR_SetPollTimer(&xTimerSignal, uiTimeMs*TIMER_MSEG);

@@ -1,11 +1,7 @@
 #include "esp_log.h"
+#include "test_sync.h"
 
 #include "ges_signal.h"
-
-#define PIN_V                       25
-#define PIN_I                       33
-#define PIN_VREF                    26
-#define VREF_LEVEL                  1650
 
 static xSIGNAL_t xSignal;
 static uint64_t uPeriod = 20000;
