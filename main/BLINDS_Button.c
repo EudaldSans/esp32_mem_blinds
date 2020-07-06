@@ -76,9 +76,10 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
 
         case PULSE_LONG10:
         case PULSE_LONG15:      if (bLockButton == false) {
-                                    FEEDBACK_CustomSignal(SIGNAL_CALIBRATE_LEVEL, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, SIGNAL_CALIBRATE_DURATION);
+                                    FEEDBACK_CalibratingSignal();
                                     if (bCompleted) {
                                         ESP_LOGI(TAG_BUTTON_UP, "PULSE CALIBRATE");
+                                        LOAD_Calibrate();
                                     }
                                 } else {
                                     ESP_LOGW(TAG_BUTTON_UP, "warning button is locked");
@@ -128,12 +129,13 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
         
         case PULSE_LONG10:
         case PULSE_LONG15:      if (bLockButton == false) {
-                                    FEEDBACK_CustomSignal(SIGNAL_CALIBRATE_LEVEL, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, SIGNAL_CALIBRATE_DURATION);
+                                    FEEDBACK_CalibratingSignal();
                                     if (bCompleted) {
-                                        ESP_LOGI(TAG_BUTTON_DOWN, "PULSE CALIBRATE");
+                                        ESP_LOGI(TAG_BUTTON_UP, "PULSE CALIBRATE");
+                                        LOAD_Calibrate();
                                     }
                                 } else {
-                                    ESP_LOGW(TAG_BUTTON_DOWN, "warning button is locked");
+                                    ESP_LOGW(TAG_BUTTON_UP, "warning button is locked");
                                 }
                                 break;
 

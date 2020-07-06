@@ -27,7 +27,13 @@
 #define VREF_LEVEL                  1650
 #define VOLTAGE_PERIOD              (60 * 1000 * 1000)
 
-#define TIME_NOTIFY_STATUS          (2*TIMER_SEG)
+#define MIN_POWER_LOAD              10  // In watts
+#define CAREER_CYCLES               5
+
+// #define TIME_NOTIFY_STATUS          (2*TIMER_SEG)
+#define DEFAULT_BLIND_MODE          BLIND_MODE_STDBLIND
+#define DEFAULT_RISE_TIME           (60 * 1000 * 1000)
+#define DEFAULT_FALL_TIME           (60 * 1000 * 1000)
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */

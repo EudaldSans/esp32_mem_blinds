@@ -32,6 +32,7 @@
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
 void _blinds_Task(void * xParams);
+bool _check_end_of_career(void);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -44,44 +45,76 @@ void _blinds_Task(void * xParams);
 xRELAY_t xReleUp;
 xRELAY_t xReleDown;
 BLINDS_CLASS xBlind1;
-POLLTIMER xTimerNotify;
+// POLLTIMER xTimerNotify;
 
-uint8_t uiBlind1_level;
-uint64_t uiBlind1_Rise;
-uint64_t uiBlind1_Fall;
-
-uint8_t uiCareer = 0;
+bool bStatusUp = false;
+bool bStatusDown = false;
+uint8_t uiLevelBlind1;
+uint64_t uiRiseBlind1;
+uint64_t uiFallBlind1;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
+bool _check_end_of_career(void)
+{
+static bool bDetectedCareer = false;
+static uint8_t uiCareerCycles = 0;
+
+    if ((bStatusUp == false) && (bStatusDown == false)) {
+        bDetectedCareer = false; uiCareerCycles = 0;
+    } else if (HLW8012_GetMeanPower() > MIN_POWER_LOAD) { 
+        if (bDetectedCareer == false) ESP_LOGI(TAG_LOAD, "Start detecction moving");
+        bDetectedCareer = true; uiCareerCycles = CAREER_CYCLES;
+    } else if (uiCareerCycles) {
+        uiCareerCycles -= 1;
+    } else if (bDetectedCareer == true) {
+        ESP_LOGI(TAG_LOAD, "Detected end of career");
+        bDetectedCareer = false;
+        return true;
+    }
+
+    return false;
+}
+
 void _blinds_Task(void * xParams)
 {
+bool bTempUp, bTempDown;
+BLIND_STATES xTempStatus;
+uint8_t uiTempLevel;
+
     while(1)
     {
         BLINDS_Engine(&xBlind1);
 
+        xTempStatus = BLINDS_GetStatus(&xBlind1, &bTempUp, &bTempDown, &uiTempLevel);
+        if (bStatusUp != bTempUp) { ESP_LOGI(TAG_LOAD, "Rele UP %d", bTempUp); bStatusUp = bTempUp; if (bStatusUp) RELAY_On(&xReleUp, true); else RELAY_Off(&xReleUp, true); }
+        if (bStatusDown != bTempDown) { ESP_LOGI(TAG_LOAD, "Rele DOWN %d", bTempDown); bStatusDown = bTempDown; if (bStatusDown) RELAY_On(&xReleDown, true); else RELAY_Off(&xReleDown, true); }
+        if (_check_end_of_career() == true) BLINDS_EndOfCareer(&xBlind1);
+        
         // Saving changes
-        if (BLINDS_GetLevel(&xBlind1) == BLIND_STOPPED) {
-            if (uiBlind1_level != BLINDS_GetLevel(&xBlind1)) { 
-                uiBlind1_level = BLINDS_GetLevel(&xBlind1);
-                TMR_SetPollTimer(&xTimerNotify, TIME_NOTIFY_STATUS);
+        if (xTempStatus == BLIND_STOPPED) {
+            if (uiLevelBlind1 != uiTempLevel) { 
+                if (NVS_WriteInt8(NVM_KEY_LEVEL, uiLevelBlind1) == true) {
+                    uiLevelBlind1 = uiTempLevel;
+                    MEM_SendInfo(1, PROTOCOL_VARIABLE_LEVEL, (double)uiLevelBlind1);
+                    ESP_LOGI(TAG_LOAD, "New blind level %d", uiLevelBlind1);
+                } else {
+                    ESP_LOGE(TAG_LOAD, "Fail saving new level");
+                }
+                // TMR_SetPollTimer(&xTimerNotify, TIME_NOTIFY_STATUS);
             }
             LOAD_SetRiseTime(BLINDS_GetRiseTime(&xBlind1));
             LOAD_SetFallTime(BLINDS_GetFallTime(&xBlind1));
         } 
         
-        if (TMR_GetPollTimeElapsed(&xTimerNotify) == true) {
-            ESP_LOGI(TAG_LOAD, "New load level %d", uiBlind1_level);
-            MEM_SendInfo(1, PROTOCOL_VARIABLE_LEVEL, (double)uiBlind1_level);
-            if (NVS_WriteInt8(NVM_KEY_LEVEL, uiBlind1_level) == false) ESP_LOGE(TAG_LOAD, "Fail saving new level");
-        } 
-
-        // Detectinf end of career
-        // uiCareer = (HLW8012_GetMeanCurrent() > 50) ? 0 : (uiCareer+1); 
-        // if (HLW8012_GetMeanCurrent() < )
+        // if (TMR_GetPollTimeElapsed(&xTimerNotify) == true) {
+        //     ESP_LOGI(TAG_LOAD, "New load level %d", uiLevelBlind1);
+        //     MEM_SendInfo(1, PROTOCOL_VARIABLE_LEVEL, (double)uiLevelBlind1);
+        //     if (NVS_WriteInt8(NVM_KEY_LEVEL, uiLevelBlind1) == true) ESP_LOGE(TAG_LOAD, "Fail saving new level");
+        // } 
 
         TMR_delay(50*TIMER_MSEG);
     }
@@ -95,16 +128,20 @@ uint8_t uiData8;
     NVS_Init();
     
     if (RELAY_Config(PIN_RELAY_UP, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleUp) == false) ESP_LOGE(TAG_LOAD, "Relay up unconfigured");
-    if (RELAY_Config(PIN_RELAY_DOWN, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleUp) == false) ESP_LOGE(TAG_LOAD, "Relay up unconfigured");
+    if (RELAY_Config(PIN_RELAY_DOWN, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleDown) == false) ESP_LOGE(TAG_LOAD, "Relay down unconfigured");
     if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
 
-    if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiBlind1_level) == false) uiBlind1_level = 0;
-    BLINDS_Start(uiBlind1_level, &xBlind1);
+    if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0;
+    BLINDS_Start(uiLevelBlind1, &xBlind1);
     if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == true) BLINDS_SetMode(&xBlind1, (BLIND_MODES)uiData8);
-    if (NVS_ReadInt64(NVM_KEY_RISE, &uiBlind1_Rise) == true) BLINDS_SetRiseTime(&xBlind1, uiBlind1_Rise); else uiBlind1_Rise = BLINDS_GetRiseTime(&xBlind1);
-    if (NVS_ReadInt64(NVM_KEY_FALL, &uiBlind1_Fall) == true) BLINDS_SetFallTime(&xBlind1, uiBlind1_Fall); else uiBlind1_Fall = BLINDS_GetFallTime(&xBlind1);
+    if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == true) BLINDS_SetRiseTime(&xBlind1, uiRiseBlind1); else uiRiseBlind1 = BLINDS_GetRiseTime(&xBlind1);
+    if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == true) BLINDS_SetFallTime(&xBlind1, uiFallBlind1); else uiFallBlind1 = BLINDS_GetFallTime(&xBlind1);
 
-    return xTaskCreatePinnedToCore(_blinds_Task, "blinds_task", 2048, NULL, 5, NULL, iCore);
+    ESP_LOGI(TAG_LOAD, "BLIND Initial level %d", uiLevelBlind1);
+    ESP_LOGI(TAG_LOAD, "BLIND Initial mode %d", uiData8);
+    ESP_LOGI(TAG_LOAD, "BLIND Initial rise %lld fall %lld", uiRiseBlind1, uiFallBlind1);
+
+    return xTaskCreatePinnedToCore(_blinds_Task, "blinds_task", 3*1024, NULL, 5, NULL, iCore);
     return true;
 }
 
@@ -167,18 +204,20 @@ bool LOAD_SetMode(BLIND_MODES xMode)
 
 bool LOAD_SetRiseTime(uint64_t uiMicroSeconds)
 {
-    if (uiBlind1_Rise != uiMicroSeconds) {
+    if (uiRiseBlind1 != uiMicroSeconds) {
         if (NVS_WriteInt64(NVM_KEY_RISE, uiMicroSeconds) == false) { ESP_LOGE(TAG_LOAD, "Fail saving rise time"); return false; }
-        uiBlind1_Rise = uiMicroSeconds;
+        uiRiseBlind1 = uiMicroSeconds; BLINDS_SetRiseTime(&xBlind1, uiRiseBlind1);
+        ESP_LOGI(TAG_LOAD, "RISE TIME %lld", uiRiseBlind1);
     }
     return true;
 }
 
 bool LOAD_SetFallTime(uint64_t uiMicroSeconds)
 {
-    if (uiBlind1_Fall != uiMicroSeconds) {
+    if (uiFallBlind1 != uiMicroSeconds) {
         if (NVS_WriteInt64(NVM_KEY_FALL, uiMicroSeconds) == false) { ESP_LOGE(TAG_LOAD, "Fail saving fall time"); return false; }
-        uiBlind1_Fall = uiMicroSeconds;
+        uiFallBlind1 = uiMicroSeconds; BLINDS_SetFallTime(&xBlind1, uiFallBlind1);
+        ESP_LOGI(TAG_LOAD, "FALL TIME %lld", uiFallBlind1);
     }
     return true;
 }
