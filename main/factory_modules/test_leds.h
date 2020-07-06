@@ -10,7 +10,7 @@
 
 #define PIN_LED_UP                  23
 #define PIN_LED_DOWN                12
-#define FADETIME_LEDS               200     // Time in ms
+#define FADETIME_LEDS               0     // Time in ms
 
 /* TYPES */
 /* ----- */
