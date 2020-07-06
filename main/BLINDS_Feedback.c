@@ -64,30 +64,30 @@ void _feedback_signal_Task(void * xParams)
         if (TMR_GetPollTimeRunning(&xTimerSignal) == true) {       // Wait here while timer is running
             TMR_GetPollTimeElapsed(&xTimerSignal);
         } else if (MEM_GetStatus() == MEM_STATUS_HIDE) {
-            LED_Off(&xLedUp);
+            LED_Off(&xLedUp, false);
             LED_Blink(&xLedDown, SIGNAL_OFFLINE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_OFFLINE_ON, SIGNAL_OFFLINE_OFF, false);
         } else if (LOAD_IsCalibrating() == true) {
             LED_Blink(&xLedUp, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
             LED_Blink(&xLedDown, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
         } else if (xIdleSignal == FEEDBACK_IDLE_ON) {
             if (LOAD_IsGoingUp() == true) {
-                LED_Off(&xLedDown);
+                LED_Off(&xLedDown, false);
                 LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
             } else if (LOAD_IsGoingDown() == true) {
-                LED_Off(&xLedUp);
+                LED_Off(&xLedUp, false);
                 LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
             } else {
-                LED_On(&xLedUp, 20); LED_On(&xLedDown, 20);
+                LED_On(&xLedUp, 20, false); LED_On(&xLedDown, 20, false);
             }
         } else if (xIdleSignal == FEEDBACK_IDLE_OFF) {
             if (LOAD_IsGoingUp() == true) {
-                LED_Off(&xLedDown);
+                LED_Off(&xLedDown, false);
                 LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
             } else if (LOAD_IsGoingDown() == true) {
-                LED_Off(&xLedUp);
+                LED_Off(&xLedUp, false);
                 LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
             } else {
-                LED_Off(&xLedUp); LED_Off(&xLedDown);
+                LED_Off(&xLedUp, false); LED_Off(&xLedDown, false);
             }
         } else {
             LED_Off(&xLedUp);
