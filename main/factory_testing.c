@@ -627,7 +627,7 @@ bool TEST_FactoryTestStart(void)
     MeterTest_Init(1);
     LedsTest_Init(1);
     SyncTest_Init(1);
-    return (xTaskCreatePinnedToCore(_factorytest_taskLoop, "FACTORY_TESTING", CONFIG_STACK_FACTORY_TESTING, NULL, 5, NULL, tskNO_AFFINITY) == ESP_OK);
+    return (xTaskCreatePinnedToCore(_factorytest_taskLoop, "FACTORY_TESTING", CONFIG_STACK_FACTORY_TESTING, NULL, 5, NULL, tskNO_AFFINITY) == pdPASS);
 }
 
 void factorytest_updateNVS(){
