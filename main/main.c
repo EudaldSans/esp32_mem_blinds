@@ -30,7 +30,7 @@
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-void _dropout_callback(uint64_t uiElapsedTime);
+// void _dropout_callback(uint64_t uiElapsedTime);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -46,10 +46,10 @@ void _dropout_callback(uint64_t uiElapsedTime);
 
 /* CODE */
 /* ---- */
-void _dropout_callback(uint64_t uiElapsedTime)
-{
-    ESP_LOGW(TAG_MAIN, "Dropout done...");
-}
+// void _dropout_callback(uint64_t uiElapsedTime)
+// {
+//     ESP_LOGW(TAG_MAIN, "Dropout done...");
+// }
 
 void app_main(void)
 {
