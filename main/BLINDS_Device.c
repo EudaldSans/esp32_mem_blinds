@@ -194,6 +194,15 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
                                                     }
                                                     break;
 
+        case PROTOCOL_VARIABLE_STATUS_INFO:         ESP_LOGI(TAG_DEVICE, "GET GLOBAL INFO DEVICE");
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_LEVEL, (double)LOAD_GetPercentatge());
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_STATUS_LOCK, (double)BUTTON_IsButtonLocked());
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_IDLE_SIGNAL, (FEEDBACK_GetIdleSignal() == FEEDBACK_IDLE_ON) ? 2 : 0);
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_BLIND_MODE, (double)((LOAD_GetMode() == BLIND_MODE_SUNBLIND) ? 1 : 0));
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_SETTIME, LOAD_GetRiseTime()/1000000);
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_FADETIME, LOAD_GetFallTime()/1000000);
+                                                    break;
+
         default:                                    break;
     }
 }
