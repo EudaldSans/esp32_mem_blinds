@@ -473,7 +473,7 @@ void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s){
     char buffer[3];
     memset(s, 0, len_s);
     for(int i=0; i<len_a; i++){
-        snprintf(buffer, sizeof(buffer), "%x", a[i]);
+        snprintf(buffer, sizeof(buffer), "%02x", a[i]);
         strncat(s, buffer, len_s);
     }
 }
