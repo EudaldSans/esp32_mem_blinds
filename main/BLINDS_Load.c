@@ -195,7 +195,7 @@ bool bUp, bDown;
 bool LOAD_SetMode(BLIND_MODES xMode)
 {
     if (BLINDS_GetMode(&xBlind1) != xMode) {
-        if (NVS_WriteInt8(NVM_KEY_RISE, (uint8_t)xMode) == false) { ESP_LOGE(TAG_LOAD, "Fail saving mode"); return false; }
+        if (NVS_WriteInt8(NVM_KEY_MODE, (uint8_t)xMode) == false) { ESP_LOGE(TAG_LOAD, "Fail saving mode"); return false; }
         BLINDS_SetMode(&xBlind1, xMode);
     }
     return true;
