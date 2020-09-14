@@ -97,7 +97,7 @@ uint8_t uiTempLevel;
         // Saving changes
         if (xTempStatus == BLIND_STOPPED) {
             if (uiLevelBlind1 != uiTempLevel) { 
-                if (NVS_WriteInt8(NVM_KEY_LEVEL, uiLevelBlind1) == true) {
+                if (NVS_WriteInt8(NVM_KEY_LEVEL, uiTempLevel) == true) {
                     uiLevelBlind1 = uiTempLevel;
                     MEM_SendInfo(1, PROTOCOL_VARIABLE_LEVEL, (double)uiLevelBlind1);
                     ESP_LOGI(TAG_LOAD, "New blind level %d", uiLevelBlind1);
