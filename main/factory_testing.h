@@ -20,6 +20,7 @@
 #define FACTORY_TEST_HTTP_PORT          8000
 #define FACTORY_TEST_HTTP_PRIORITY      3
 
+#define WIFI_TEST_TIMEOUT               10000
 #define KEY_DATE                        "date"
 #define KEY_SERIAL_ID                   "serial_id"
 
@@ -28,6 +29,7 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
+void TEST_WifiInit();
 bool TEST_FactoryTestStart(void);
 bool TEST_IsFactoryTestPassed(void);
 
