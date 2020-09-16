@@ -18,6 +18,7 @@
 #include "ges_wifi.h"
 #include "ges_http_server.h"
 #include "ges_nvs.h"
+#include "ges_timer.h"
 
 #include "factory_testing.h"
 #include "test_button.h"
@@ -615,12 +616,6 @@ void _disable_wifi_test(){
     // }
 }
 
-void _timed_disable_wifi_test(void *pvParams){
-    vTaskDelay(WIFI_TEST_TIMEOUT/portTICK_PERIOD_MS);
-    _disable_wifi_test();
-    vTaskDelete(NULL);
-}
-
 void __URI_post_wifi(httpd_req_t * xReq) {
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /wifi");
     cJSON * xPayload = cJSON_CreateObject();
@@ -632,21 +627,39 @@ void __URI_post_wifi(httpd_req_t * xReq) {
     cJSON* obj;
     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
+    int duration;
+    int channel = 1;
+    int attenuation = 0;
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /dimmers\n%s", cData);
     if (bLenGetData) {
         reqData= cJSON_Parse(cData);
-        obj = cJSON_GetObjectItem(reqData, "runTest");
+        obj = cJSON_GetObjectItem(reqData, "channel");
+        if(cJSON_IsNumber(obj)){
+            channel = obj->valueint;
+        }
+        obj = cJSON_GetObjectItem(reqData, "attenuation");
+        if(cJSON_IsNumber(obj)){
+            attenuation = obj->valueint;
+        }
+        obj = cJSON_GetObjectItem(reqData, "testDuration");
+        if(cJSON_IsNumber(obj)){
+            duration = obj->valueint;
+            if(duration > 0){
         RFTEST_Init();
-        if(cJSON_IsTrue(obj)){
-            ESP_LOGI(TAG_FACTORY_TESTING, "running wifi carrier test");
+
             //Disable watchdog
             rtc_wdt_protect_off();
             rtc_wdt_disable();
             //Start tx mode
-            RFTEST_Start(1, 0, 0);
-            xTaskCreate(_timed_disable_wifi_test, "disable_wifi_test", 4096, NULL, 3, NULL);
-        }else{
+                ESP_LOGI(TAG_FACTORY_TESTING, "start Wi-Fi carrier test: duration = %d, channel = %d, attenuation = %d", duration, channel, attenuation);
+                RFTEST_Start(channel, 0, attenuation);
+            	TMR_delay(duration*TIMER_SEG);
             _disable_wifi_test();
+            }
+            else
+            {
+                _disable_wifi_test();
+            }
         }
     }
     cJSON_AddBoolToObject(xPayload, "result", true);
@@ -667,6 +680,7 @@ void TEST_WifiInit(){
     NVS_Init();
     TEST_STEPS state = factorytest_getState();
     factorytest_updateNVS();
+    //Init Wi-Fi
     ESP_LOGI(TAG_FACTORY_TESTING, "TEST_FactoryTestStart(%s)", _state_to_string(state));
     if(state == TEST_STEP0){
         WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK);
