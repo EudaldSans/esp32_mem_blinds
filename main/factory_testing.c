@@ -34,6 +34,7 @@
 typedef enum {
     TEST_STEP0=0,
     TEST_STEP1,
+    TEST_STEP2,
     TEST_PASSED,
     TEST_NUM_STEPS
 } TEST_STEPS;
@@ -152,6 +153,8 @@ char * _state_to_string(TEST_STEPS state){
             return "phase0";
         case TEST_STEP1:
             return "phase1";
+        case TEST_STEP2:
+            return "phase2";
         case TEST_PASSED:
             return "passed";
         default:
@@ -164,6 +167,8 @@ TEST_STEPS stateFromString(char * state){
         return TEST_STEP0;
     else if(strcmp(state, "phase1")==0)
         return TEST_STEP1;
+    else if(strcmp(state, "phase2")==0)
+        return TEST_STEP2;
     else if (strcmp(state, "passed")==0)
         return TEST_PASSED;
     else
@@ -688,6 +693,10 @@ void TEST_WifiInit(){
     }
     else if(state == TEST_STEP1){
         WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP1_SSID, FACTORY_TEST_STEP1_PSK);
+        ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP1_SSID);
+    }
+    else if(state == TEST_STEP2){
+        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP2_SSID, FACTORY_TEST_STEP2_PSK);
         ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP1_SSID);
     }
     else{
