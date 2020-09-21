@@ -1,7 +1,6 @@
 menu "FACTORY_TEST"
     choice BOARD
 	bool "targeted hw"
-	default MEM_SWITCH
     config BOARD_MEM_BLINDS
 	bool "MEM Blinds"
     config BOARD_LOLIN
