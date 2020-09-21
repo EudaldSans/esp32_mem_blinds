@@ -19,8 +19,8 @@ typedef enum {
 
 /* DEFINES */
 /* ------- */
-#define PIN_LED_UP                  23
-#define PIN_LED_DOWN                12
+#define PIN_LED_UP                  12
+#define PIN_LED_DOWN                23
 
 #define FADETIME_LEDS               0     // Time in ms
 #define DEFAULT_IDLE_SIGNAL         FEEDBACK_IDLE_OFF

@@ -34,5 +34,6 @@ void ButtonTest_Reset(void);
 int ButtonTest_GetTotalButtons(void);
 int ButtonTest_GetShortPulsations(int button);
 int ButtonTest_GetLongPulsations(int button);
+int64_t ButtonTest_GetTimestamp(int button);
 
 #endif
