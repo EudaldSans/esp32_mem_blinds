@@ -30,6 +30,7 @@
 /* ----- */
 typedef struct ButtonPulse_s {
     uint16_t shortPulsations;
+    int64_t  iTimestamp;
     uint16_t longPulsations;
 } ButtonPulse_t;
 
@@ -74,10 +75,12 @@ void _test_button_callback(size_t i, bool bCompleted, uint64_t uiTime){
 
         case PULSE_SHORT:       ESP_LOGI(TAG_BUTTON, "Button %d : short pulse", i);
                                 pulsations[i].shortPulsations++;
+                                    pulsations[i].iTimestamp = esp_timer_get_time();
                                 break;
 
         default:                ESP_LOGI(TAG_BUTTON, "Button %d : long pulse", i);
                                 pulsations[i].longPulsations++;
+                                    pulsations[i].iTimestamp = esp_timer_get_time();
 			                    break;
     } 	
 #endif
@@ -139,4 +142,9 @@ int ButtonTest_GetLongPulsations(int button)
     else{
         return -1;
     }
+}
+
+int64_t ButtonTest_GetTimestamp(int button)
+{
+    return (button < N_BUTTONS) ? pulsations[button].iTimestamp : -1;
 }
