@@ -27,16 +27,15 @@
 #include "test_leds.h"
 #include "test_sync.h"
 
-// #include "wifi_test.h"
-// #include "soc/rtc_wdt.h"
+#include "test_rf.h"
 
 /* TYPES */
 /* ----- */
 typedef enum {
-    TEST_STEP0=0,
+    TEST_PASSED = 0,
+    TEST_STEP0,
     TEST_STEP1,
     TEST_STEP2,
-    TEST_PASSED,
     TEST_NUM_STEPS
 } TEST_STEPS;
 
@@ -73,8 +72,10 @@ void __URI_post_meter(httpd_req_t * xReq);
 void __URI_get_ac(httpd_req_t * xReq);
 void __URI_get_leds(httpd_req_t * xReq);
 void __URI_set_leds(httpd_req_t * xReq);
-// void __URI_post_wifi(httpd_req_t * xReq);
 void __URI_get_reset(httpd_req_t * xReq);
+void __URI_post_wifi(httpd_req_t * xReq);
+void __URI_get_wifi(httpd_req_t * xReq);
+void __URI_get_rssi(httpd_req_t * xReq);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -105,7 +106,6 @@ bool _factorytest_webStart(SERVER_OBJ* xWebUi)
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/state", __URI_post_state);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/info", __URI_get_info);
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/info", __URI_post_info);
-        // HTTP_RegisterUri(xWebUi, HTTP_POST, "/wifi", __URI_post_wifi);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/buttons", __URI_get_buttons);
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/buttons", __URI_post_buttons);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/relays", __URI_get_relays);
@@ -116,6 +116,9 @@ bool _factorytest_webStart(SERVER_OBJ* xWebUi)
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/leds", __URI_get_leds);
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/leds", __URI_set_leds);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/reset", __URI_get_reset);
+        HTTP_RegisterUri(xWebUi, HTTP_POST, "/wifi", __URI_post_wifi);
+        HTTP_RegisterUri(xWebUi, HTTP_GET, "/wifi", __URI_get_wifi);
+        HTTP_RegisterUri(xWebUi, HTTP_GET, "/rssi", __URI_get_rssi);
         INFO("URIs initiated");
         return true;
     }
@@ -127,7 +130,7 @@ TEST_STEPS factorytest_getState(void)
 {
     NVS_Init();
     bool res;
-    uint16_t uiState = 0;
+    uint16_t uiState = (uint16_t)TEST_STEP0;
     res = NVS_ReadInt16(FACTORY_TEST_NVS_KEY_STATE, &uiState);
     ESP_LOGI(TAG_FACTORY_TESTING, "getState() : %d (%s)", (int)uiState, res ? "OK" : "ERROR");
     return (TEST_STEPS)uiState;
@@ -622,55 +625,109 @@ void __URI_set_leds(httpd_req_t * xReq)
 //     // }
 // }
 
-// void __URI_post_wifi(httpd_req_t * xReq) {
-//     ESP_LOGI(TAG_FACTORY_TESTING, "POST /wifi");
-//     cJSON * xPayload = cJSON_CreateObject();
+void __URI_post_wifi(httpd_req_t * xReq) 
+{
+char cData[500];
+size_t bSize;
+int bLenGetData;
 
-//     size_t bSize;
-//     int bLenGetData;
-//     char cData[500];
-//     cJSON* reqData;
-//     cJSON* obj;
-//     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
-//     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
-//     int duration;
-//     int channel = 1;
-//     int attenuation = 0;
-//     ESP_LOGI(TAG_FACTORY_TESTING, "POST /dimmers\n%s", cData);
-//     if (bLenGetData) {
-//         reqData= cJSON_Parse(cData);
-//         obj = cJSON_GetObjectItem(reqData, "channel");
-//         if(cJSON_IsNumber(obj)){
-//             channel = obj->valueint;
-//         }
-//         obj = cJSON_GetObjectItem(reqData, "attenuation");
-//         if(cJSON_IsNumber(obj)){
-//             attenuation = obj->valueint;
-//         }
-//         obj = cJSON_GetObjectItem(reqData, "testDuration");
-//         if(cJSON_IsNumber(obj)){
-//             duration = obj->valueint;
-//             if(duration > 0){
-//         RFTEST_Init();
+cJSON * xJsonData;
+cJSON * xJsonObj;
+cJSON * xJsonResp = cJSON_CreateObject();
 
-//             //Disable watchdog
-//             rtc_wdt_protect_off();
-//             rtc_wdt_disable();
-//             //Start tx mode
-//                 ESP_LOGI(TAG_FACTORY_TESTING, "start Wi-Fi carrier test: duration = %d, channel = %d, attenuation = %d", duration, channel, attenuation);
-//                 RFTEST_Start(channel, 0, attenuation);
-//             	TMR_delay(duration*TIMER_SEG);
-//             _disable_wifi_test();
-//             }
-//             else
-//             {
-//                 _disable_wifi_test();
-//             }
-//         }
-//     }
-//     cJSON_AddBoolToObject(xPayload, "result", true);
-//     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
-// }
+uint16_t uiRate = 50;
+uint16_t uiLoops = 1;
+
+    ESP_LOGI(TAG_FACTORY_TESTING, "POST /wifi");
+    if (RfTest_IsRunning() == true) {
+        HTTP_ResponseSend(xReq, cJSON_Print(xJsonResp), HTTP_CONTENT_JSON);
+        cJSON_Delete(xJsonResp);
+        return;
+    }
+
+    bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
+    bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
+    ESP_LOGI(TAG_FACTORY_TESTING, "Data: %s", cData);
+    if (bLenGetData)
+    {
+        xJsonData = cJSON_Parse(cData);
+        if (xJsonData != NULL)
+        {
+            xJsonObj = cJSON_GetObjectItem(xJsonData, "rfLoops"); if (xJsonObj != NULL) uiLoops = xJsonObj->valueint;
+            xJsonObj = cJSON_GetObjectItem(xJsonData, "rfRate"); if (xJsonObj != NULL) uiRate = xJsonObj->valueint;
+
+            ESP_LOGI(TAG_FACTORY_TESTING, "Getted params rf test %d %d", uiLoops, uiRate);
+            if (RfTest_start(uiLoops, uiRate) == false) {
+                HTTP_ResponseErrorCustom(xReq, 500, HTTP_CONTENT_TEXT, "Error starting test");
+            } else {
+                HTTP_ResponseSend(xReq, cJSON_Print(xJsonResp), HTTP_CONTENT_JSON);
+                ESP_LOGI(TAG_FACTORY_TESTING, "TEST Loops(%d) Rate(%d)", uiLoops, uiRate);
+            }
+            
+        } else {
+            HTTP_ResponseErrorCustom(xReq, 500, HTTP_CONTENT_TEXT, "Error parsing config wireless JSON object");
+        }
+    } else {
+        HTTP_ResponseErrorCustom(xReq, 500, HTTP_CONTENT_TEXT, "Error parsing config wireless JSON object");
+    }
+
+    cJSON_Delete(xJsonResp);
+}
+
+void __URI_get_wifi(httpd_req_t * xReq)
+{
+cJSON * xJsonInfo = cJSON_CreateObject();
+char cStrTemp[1024*3] = "";
+char cValue[6];
+uint16_t uiIdx;
+uint16_t uiTotal;
+uint16_t uiMaxRf = 0;
+uint16_t uiMinRf = 0xFFFF;
+
+    ESP_LOGI(TAG_FACTORY_TESTING, "GET /wifi");
+
+    uiTotal = RfTest_GetNumTxDetections();
+    cJSON_AddStringToObject(xJsonInfo, "rfRunning", (RfTest_IsRunning() == true) ? "true" : "false");
+    cJSON_AddNumberToObject(xJsonInfo, "rfDetections", uiTotal);
+
+    strcpy(cStrTemp, "");
+    for (uiIdx=0; ((uiIdx<uiTotal)&&(uiIdx<MAX_RF_BUFFER)); uiIdx++) {
+        if (uiMaxRf < RfTest_GetArrayMeasures()[uiIdx]) uiMaxRf = RfTest_GetArrayMeasures()[uiIdx];
+        if (uiMinRf > RfTest_GetArrayMeasures()[uiIdx]) uiMinRf = RfTest_GetArrayMeasures()[uiIdx];
+        strcat(cStrTemp, itoa(RfTest_GetArrayMeasures()[uiIdx], cValue, 10)); strcat(cStrTemp, ","); 
+    } 
+    cJSON_AddNumberToObject(xJsonInfo, "rfMax", uiMaxRf);
+    cJSON_AddNumberToObject(xJsonInfo, "rfMin", uiMinRf);
+    cJSON_AddStringToObject(xJsonInfo, "rfMeasures", cStrTemp);
+
+    HTTP_ResponseSend(xReq, cJSON_Print(xJsonInfo), HTTP_CONTENT_JSON);
+    ESP_LOGI(TAG_FACTORY_TESTING, "%s", cJSON_Print(xJsonInfo));
+    cJSON_Delete(xJsonInfo);
+}
+
+void __URI_get_rssi(httpd_req_t *xReq)
+{
+cJSON * xJsonInfo = cJSON_CreateObject();
+cJSON * xJsonArray = cJSON_CreateArray();
+cJSON * xJsonAp;
+char cStr[32];
+int8_t iRssi;
+uint16_t uiIdx;
+
+    ESP_LOGI(TAG_FACTORY_TESTING, "GET /rssi");
+    WIFI_StartScan(false, WIFI_CHANNEL_ALL);
+    for (uiIdx=0; uiIdx<WIFI_GetNumScannedSsids(); uiIdx++)
+    {
+        WIFI_GetScannedSsid(uiIdx, cStr, &iRssi, NULL, NULL);
+        cJSON_AddItemToArray(xJsonArray, xJsonAp = cJSON_CreateObject());
+        cJSON_AddStringToObject(xJsonAp, "ssid", cStr);
+        cJSON_AddNumberToObject(xJsonAp, "rssi", (double)iRssi);
+    }
+    cJSON_AddItemToObject(xJsonInfo, "nets", xJsonArray);
+
+    HTTP_ResponseSend(xReq, cJSON_Print(xJsonInfo), HTTP_CONTENT_JSON);
+    cJSON_Delete(xJsonInfo);
+}
 
 void __URI_get_reset(httpd_req_t * xReq)
 {
@@ -698,7 +755,7 @@ void TEST_WifiInit(){
     }
     else if(state == TEST_STEP2){
         WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP2_SSID, FACTORY_TEST_STEP2_PSK);
-        ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP1_SSID);
+        ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP2_SSID);
     }
     else{
         WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK);
@@ -714,6 +771,7 @@ bool TEST_FactoryTestStart(void)
     MeterTest_Init(1);
     LedsTest_Init(1);
     SyncTest_Init(1);
+    RfTest_Init(0);
     return (xTaskCreatePinnedToCore(_factorytest_taskLoop, "FACTORY_TESTING", CONFIG_STACK_FACTORY_TESTING, NULL, 5, NULL, tskNO_AFFINITY) == pdPASS);
 }
 
