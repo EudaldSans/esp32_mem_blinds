@@ -28,6 +28,7 @@
 #define NVM_KEY_RISE                "rise_1"
 #define NVM_KEY_FALL                "fall_1"
 #define NVM_KEY_LEVEL               "level_1"
+#define NVM_KEY_CALIB               "calib_1"
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
@@ -52,6 +53,7 @@ bool bStatusDown = false;
 uint8_t uiLevelBlind1;
 uint64_t uiRiseBlind1;
 uint64_t uiFallBlind1;
+bool bCalibredBlind1;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
@@ -108,6 +110,7 @@ uint8_t uiTempLevel;
             }
             LOAD_SetRiseTime(BLINDS_GetRiseTime(&xBlind1));
             LOAD_SetFallTime(BLINDS_GetFallTime(&xBlind1));
+            LOAD_SetCalibrated(BLINDS_IsCalibrated(&xBlind1));
         } 
         
         // if (TMR_GetPollTimeElapsed(&xTimerNotify) == true) {
@@ -132,7 +135,8 @@ uint8_t uiData8;
     if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
 
     if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0;
-    BLINDS_Start(uiLevelBlind1, &xBlind1);
+    if (NVS_ReadBoolean(NVM_KEY_CALIB, &bCalibredBlind1) == false) bCalibredBlind1 = false;
+    BLINDS_Start(uiLevelBlind1, bCalibredBlind1, &xBlind1);
     if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == true) BLINDS_SetMode(&xBlind1, (BLIND_MODES)uiData8);
     if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == true) BLINDS_SetRiseTime(&xBlind1, uiRiseBlind1); else uiRiseBlind1 = BLINDS_GetRiseTime(&xBlind1);
     if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == true) BLINDS_SetFallTime(&xBlind1, uiFallBlind1); else uiFallBlind1 = BLINDS_GetFallTime(&xBlind1);
@@ -201,6 +205,14 @@ bool LOAD_SetMode(BLIND_MODES xMode)
     return true;
 }
 
+bool LOAD_SetCalibrated(bool bCalibrated)
+{
+    if (BLINDS_IsCalibrated(&xBlind1) != bCalibrated) {
+        if (NVS_WriteBoolean(NVM_KEY_CALIB, bCalibrated) == false) { ESP_LOGE(TAG_LOAD, "Fail saving calibration status"); return false; }
+        BLINDS_SetCalibrated(&xBlind1, bCalibrated);
+    }
+    return true;
+}
 
 bool LOAD_SetRiseTime(uint64_t uiMicroSeconds)
 {

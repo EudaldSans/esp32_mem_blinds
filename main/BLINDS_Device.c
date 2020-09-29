@@ -118,6 +118,7 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
                                                     LOAD_SetMode(DEFAULT_BLIND_MODE);
                                                     LOAD_SetRiseTime(DEFAULT_RISE_TIME);
                                                     LOAD_SetFallTime(DEFAULT_FALL_TIME);
+                                                    LOAD_SetCalibrated(false);
                                                     break;
 
         case PROTOCOL_VARIABLE_IDENTIFY:            ESP_LOGI(TAG_DEVICE, "SET IDENTIFY");
@@ -158,7 +159,7 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
 
         case PROTOCOL_VARIABLE_CALIBRATION:         if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET CALIBRATION");
-                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsCalibrating());
+                                                        MEM_SendInfo(1, xVar, (LOAD_IsCalibrating() == true) ? 1 : (LOAD_IsCalibrated() == false) ? 2 : 0);
                                                     }
                                                     break;
 

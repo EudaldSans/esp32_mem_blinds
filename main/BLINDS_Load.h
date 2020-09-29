@@ -59,6 +59,7 @@ bool LOAD_IsStopped(void);
 bool LOAD_SetMode(BLIND_MODES xMode);
 BLIND_MODES LOAD_GetMode(void);
 
+bool LOAD_SetCalibrated(bool bCalibrated);
 bool LOAD_SetRiseTime(uint64_t uiMicroSeconds);
 uint64_t LOAD_GetRiseTime(void);
 bool LOAD_SetFallTime(uint64_t uiMicroSeconds);
