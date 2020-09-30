@@ -14,6 +14,7 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
 
+#include "OTA_APP.h"
 #include "MEM_Installation.h"
 #include "ges_wifi.h"
 #include "ges_http_server.h"
@@ -72,7 +73,7 @@ void __URI_post_meter(httpd_req_t * xReq);
 void __URI_get_ac(httpd_req_t * xReq);
 void __URI_get_leds(httpd_req_t * xReq);
 void __URI_set_leds(httpd_req_t * xReq);
-void __URI_get_reset(httpd_req_t * xReq);
+void __URI_post_reset(httpd_req_t * xReq);
 void __URI_post_wifi(httpd_req_t * xReq);
 void __URI_get_wifi(httpd_req_t * xReq);
 void __URI_get_rssi(httpd_req_t * xReq);
@@ -115,7 +116,7 @@ bool _factorytest_webStart(SERVER_OBJ* xWebUi)
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/meter", __URI_post_meter);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/leds", __URI_get_leds);
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/leds", __URI_set_leds);
-        HTTP_RegisterUri(xWebUi, HTTP_GET, "/reset", __URI_get_reset);
+        HTTP_RegisterUri(xWebUi, HTTP_POST, "/reset", __URI_post_reset);
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/wifi", __URI_post_wifi);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/wifi", __URI_get_wifi);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/rssi", __URI_get_rssi);
@@ -456,6 +457,8 @@ void __URI_get_info(httpd_req_t * xReq) {
     char mac[MAC_BYTES_LEN*2 + 1];
     char secret[65];
     char serialId[32];
+    char fwVersion[128] = "undefined";
+    size_t fwVersion_len = sizeof(fwVersion);
     uint16_t date;
     char error_code[] = "undefined";
     cJSON * xPayload = cJSON_CreateObject();
@@ -472,6 +475,7 @@ void __URI_get_info(httpd_req_t * xReq) {
     if(!res)
         strcpy(serialId, error_code);
     
+    NVS_ReadStrFromModule("OTA", "FW", fwVersion, &fwVersion_len);
     macBytes = WIFI_GetMacAddress();
     uiatoa(macBytes, MAC_BYTES_LEN, mac, sizeof(mac));
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /info\nsecret : %s\nhwId : %s", secret, hwId);
@@ -482,6 +486,7 @@ void __URI_get_info(httpd_req_t * xReq) {
     cJSON_AddItemToObject(xPayload, "mac", cJSON_CreateString(mac));
     cJSON_AddNumberToObject(xPayload, "date", date);
     cJSON_AddStringToObject(xPayload, "serialId", serialId);
+    cJSON_AddStringToObject(xPayload, "fwVersion", fwVersion);
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
 }
 
@@ -729,12 +734,14 @@ uint16_t uiIdx;
     cJSON_Delete(xJsonInfo);
 }
 
-void __URI_get_reset(httpd_req_t * xReq)
+void __URI_post_reset(httpd_req_t * xReq)
 {
+    ESP_LOGI(TAG_FACTORY_TESTING, "POST /reset");
 cJSON * xPayload = cJSON_CreateObject();
 
     cJSON_AddBoolToObject(xPayload, "result", true);
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
+    TMR_delay(100e3);
     esp_restart();
 }
 
