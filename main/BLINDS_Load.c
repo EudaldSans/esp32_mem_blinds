@@ -53,7 +53,8 @@ bool bStatusDown = false;
 uint8_t uiLevelBlind1;
 uint64_t uiRiseBlind1;
 uint64_t uiFallBlind1;
-bool bCalibredBlind1;
+bool bCalibratedBlind1;
+bool bNotifyEndCalib1 = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
@@ -108,10 +109,18 @@ uint8_t uiTempLevel;
                 }
                 // TMR_SetPollTimer(&xTimerNotify, TIME_NOTIFY_STATUS);
             }
+
+            if (bNotifyEndCalib1 == true) {
+                if (LOAD_IsCalibrated() == true) { MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 0); LOAD_SetCalibrated(true); } 
+                else { MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 2); }
+                bNotifyEndCalib1 = false;
+            }
+
             LOAD_SetRiseTime(BLINDS_GetRiseTime(&xBlind1));
             LOAD_SetFallTime(BLINDS_GetFallTime(&xBlind1));
-            LOAD_SetCalibrated(BLINDS_IsCalibrated(&xBlind1));
-        } 
+        } else if ((LOAD_IsCalibrating() == true) && (bNotifyEndCalib1 == false)) {
+            MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 1); bNotifyEndCalib1 = true;
+        }
         
         // if (TMR_GetPollTimeElapsed(&xTimerNotify) == true) {
         //     ESP_LOGI(TAG_LOAD, "New load level %d", uiLevelBlind1);
@@ -135,13 +144,14 @@ uint8_t uiData8;
     if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
 
     if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0;
-    if (NVS_ReadBoolean(NVM_KEY_CALIB, &bCalibredBlind1) == false) bCalibredBlind1 = false;
-    BLINDS_Start(uiLevelBlind1, bCalibredBlind1, &xBlind1);
+    if (NVS_ReadBoolean(NVM_KEY_CALIB, &bCalibratedBlind1) == false) bCalibratedBlind1 = false;
+    BLINDS_Start(uiLevelBlind1, bCalibratedBlind1, &xBlind1);
     if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == true) BLINDS_SetMode(&xBlind1, (BLIND_MODES)uiData8);
     if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == true) BLINDS_SetRiseTime(&xBlind1, uiRiseBlind1); else uiRiseBlind1 = BLINDS_GetRiseTime(&xBlind1);
     if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == true) BLINDS_SetFallTime(&xBlind1, uiFallBlind1); else uiFallBlind1 = BLINDS_GetFallTime(&xBlind1);
 
     ESP_LOGI(TAG_LOAD, "BLIND Initial level %d", uiLevelBlind1);
+    ESP_LOGI(TAG_LOAD, "BLIND initial calibration status %d", (int)bCalibratedBlind1);
     ESP_LOGI(TAG_LOAD, "BLIND Initial mode %d", uiData8);
     ESP_LOGI(TAG_LOAD, "BLIND Initial rise %lld fall %lld", uiRiseBlind1, uiFallBlind1);
 
@@ -152,8 +162,8 @@ uint8_t uiData8;
 bool LOAD_Open(void)                                    { BLINDS_Open(&xBlind1); return true; }
 bool LOAD_Close(void)                                   { BLINDS_Close(&xBlind1); return true; }
 bool LOAD_Stop(void)                                    { BLINDS_Stop(&xBlind1); return true; }
-
 bool LOAD_Calibrate(void)                               { BLINDS_StartCalibration(&xBlind1); return true; }
+
 bool LOAD_Regulate(uint8_t uiPercentatge)               { BLINDS_Specific(&xBlind1, uiPercentatge); return true; }
 uint8_t LOAD_GetPercentatge(void)                       { return BLINDS_GetLevel(&xBlind1); }
 
@@ -201,15 +211,17 @@ bool LOAD_SetMode(BLIND_MODES xMode)
     if (BLINDS_GetMode(&xBlind1) != xMode) {
         if (NVS_WriteInt8(NVM_KEY_MODE, (uint8_t)xMode) == false) { ESP_LOGE(TAG_LOAD, "Fail saving mode"); return false; }
         BLINDS_SetMode(&xBlind1, xMode);
+        ESP_LOGI(TAG_LOAD, "MODE %d", (int)xMode);
     }
     return true;
 }
 
 bool LOAD_SetCalibrated(bool bCalibrated)
 {
-    if (BLINDS_IsCalibrated(&xBlind1) != bCalibrated) {
+    if (bCalibratedBlind1 != bCalibrated) {
         if (NVS_WriteBoolean(NVM_KEY_CALIB, bCalibrated) == false) { ESP_LOGE(TAG_LOAD, "Fail saving calibration status"); return false; }
-        BLINDS_SetCalibrated(&xBlind1, bCalibrated);
+        BLINDS_SetCalibrated(&xBlind1, bCalibrated); bCalibratedBlind1 = bCalibrated;
+        ESP_LOGI(TAG_LOAD, "CALIBRATION STATUS %d", bCalibratedBlind1);
     }
     return true;
 }
