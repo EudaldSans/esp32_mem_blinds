@@ -210,12 +210,14 @@ void __URI_get_buttons(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "shortPulsations", ButtonTest_GetShortPulsations(i));
         cJSON_AddNumberToObject(obj, "longPulsations", ButtonTest_GetLongPulsations(i));
         cJSON_AddNumberToObject(obj, "timestamp", (double)ButtonTest_GetTimestamp(i));
+        cJSON_Delete(obj);
     }
 
 
     payload_str = cJSON_Print(payload);
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /buttons\n%s\n", payload_str);
     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
 }
 
 void __URI_post_buttons(httpd_req_t * xReq){
@@ -225,6 +227,7 @@ void __URI_post_buttons(httpd_req_t * xReq){
 
     cJSON_AddBoolToObject(payload, "result", true);
     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
 }
 
 void __URI_get_relays(httpd_req_t * xReq)
@@ -240,12 +243,14 @@ void __URI_get_relays(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "calibrationsDone", RelayTest_GetCalibrations(i));
         cJSON_AddNumberToObject(obj, "operateTime", RelayTest_GetOperateTime(i));
         cJSON_AddNumberToObject(obj, "releaseTime", RelayTest_GetReleaseTime(i));
+        cJSON_Delete(obj);
     }
 
 
     payload_str = cJSON_Print(payload);
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /relays\n%s\n", payload_str);
     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
 }
 
 void __URI_post_relays(httpd_req_t * xReq){
@@ -309,6 +314,7 @@ void __URI_post_relays(httpd_req_t * xReq){
 
     cJSON_AddBoolToObject(payload, "result", result);
     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
 }
 void __URI_get_meter(httpd_req_t * xReq)
 {
@@ -331,6 +337,8 @@ void __URI_get_meter(httpd_req_t * xReq)
     payload_str = cJSON_Print(payload);
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /meter\n%s\n", payload_str);
     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
+    cJSON_Delete(calibrationParams);
 }
 
 void __URI_post_meter(httpd_req_t * xReq){
@@ -393,6 +401,7 @@ void __URI_post_meter(httpd_req_t * xReq){
 
     cJSON_AddBoolToObject(payload, "result", result);
     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
 }
 
 void __URI_get_ac(httpd_req_t * xReq) {
@@ -400,6 +409,7 @@ void __URI_get_ac(httpd_req_t * xReq) {
     cJSON_AddNumberToObject(xPayload, "T", SyncTest_GetPeriod());
     cJSON_AddNumberToObject(xPayload, "Ton", SyncTest_GetPeriod()/2);
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
+    cJSON_Delete(xPayload);
 }
 
 void __URI_get_state(httpd_req_t * xReq) {
@@ -408,6 +418,7 @@ void __URI_get_state(httpd_req_t * xReq) {
     cJSON * xPayload = cJSON_CreateObject();
     cJSON_AddItemToObject(xPayload, "state", cJSON_CreateString(step_description));
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
+    cJSON_Delete(xPayload);
 }
 
 void __URI_post_state(httpd_req_t * xReq) {
@@ -445,6 +456,7 @@ void __URI_post_state(httpd_req_t * xReq) {
 
     cJSON_AddBoolToObject(xJsonResp, "result", result);
     HTTP_ResponseSend(xReq, cJSON_Print(xJsonResp), HTTP_CONTENT_JSON);
+    cJSON_Delete(xJsonResp);
 }
 
 void __URI_get_info(httpd_req_t * xReq) {
@@ -488,6 +500,7 @@ void __URI_get_info(httpd_req_t * xReq) {
     cJSON_AddStringToObject(xPayload, "serialId", serialId);
     cJSON_AddStringToObject(xPayload, "fwVersion", fwVersion);
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
+    cJSON_Delete(xPayload);
 }
 
 void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s){
@@ -560,6 +573,7 @@ void __URI_post_info(httpd_req_t * xReq) {
 
     cJSON_AddBoolToObject(xJsonResp, "result", result);
     HTTP_ResponseSend(xReq, cJSON_Print(xJsonResp), HTTP_CONTENT_JSON);
+    cJSON_Delete(xJsonResp);
 }
 
 void __URI_get_leds(httpd_req_t * xReq)
@@ -573,8 +587,10 @@ void __URI_get_leds(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "maxValue", LedsTest_GetMax(i));
         snprintf(key, sizeof(key), "%d", i);
         cJSON_AddItemToObject(payload, key, obj);
+        cJSON_Delete(obj);
     }
     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
 }
 
 void __URI_set_leds(httpd_req_t * xReq)
@@ -614,6 +630,7 @@ void __URI_set_leds(httpd_req_t * xReq)
 
     cJSON_AddBoolToObject(payload, "result", result);
     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
+    cJSON_Delete(payload);
 }
 
 // void _disable_wifi_test(){
@@ -732,15 +749,16 @@ uint16_t uiIdx;
 
     HTTP_ResponseSend(xReq, cJSON_Print(xJsonInfo), HTTP_CONTENT_JSON);
     cJSON_Delete(xJsonInfo);
+    cJSON_Delete(xJsonArray);
 }
 
 void __URI_post_reset(httpd_req_t * xReq)
 {
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /reset");
-cJSON * xPayload = cJSON_CreateObject();
-
+    cJSON * xPayload = cJSON_CreateObject();
     cJSON_AddBoolToObject(xPayload, "result", true);
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
+    cJSON_Delete(xPayload);
     TMR_delay(100e3);
     esp_restart();
 }
