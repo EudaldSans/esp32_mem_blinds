@@ -210,7 +210,6 @@ void __URI_get_buttons(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "shortPulsations", ButtonTest_GetShortPulsations(i));
         cJSON_AddNumberToObject(obj, "longPulsations", ButtonTest_GetLongPulsations(i));
         cJSON_AddNumberToObject(obj, "timestamp", (double)ButtonTest_GetTimestamp(i));
-        cJSON_Delete(obj);
     }
 
 
@@ -243,7 +242,6 @@ void __URI_get_relays(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "calibrationsDone", RelayTest_GetCalibrations(i));
         cJSON_AddNumberToObject(obj, "operateTime", RelayTest_GetOperateTime(i));
         cJSON_AddNumberToObject(obj, "releaseTime", RelayTest_GetReleaseTime(i));
-        cJSON_Delete(obj);
     }
 
 
@@ -338,7 +336,6 @@ void __URI_get_meter(httpd_req_t * xReq)
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /meter\n%s\n", payload_str);
     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
     cJSON_Delete(payload);
-    cJSON_Delete(calibrationParams);
 }
 
 void __URI_post_meter(httpd_req_t * xReq){
@@ -587,7 +584,6 @@ void __URI_get_leds(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "maxValue", LedsTest_GetMax(i));
         snprintf(key, sizeof(key), "%d", i);
         cJSON_AddItemToObject(payload, key, obj);
-        cJSON_Delete(obj);
     }
     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
     cJSON_Delete(payload);
@@ -659,6 +655,7 @@ cJSON * xJsonResp = cJSON_CreateObject();
 
 uint16_t uiRate = 50;
 uint16_t uiLoops = 1;
+int8_t iPower = 40;
 
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /wifi");
     if (RfTest_IsRunning() == true) {
@@ -677,8 +674,11 @@ uint16_t uiLoops = 1;
         {
             xJsonObj = cJSON_GetObjectItem(xJsonData, "rfLoops"); if (xJsonObj != NULL) uiLoops = xJsonObj->valueint;
             xJsonObj = cJSON_GetObjectItem(xJsonData, "rfRate"); if (xJsonObj != NULL) uiRate = xJsonObj->valueint;
+            xJsonObj = cJSON_GetObjectItem(xJsonData, "rfPower"); if (xJsonObj != NULL) iPower = xJsonObj->valueint;
 
-            ESP_LOGI(TAG_FACTORY_TESTING, "Getted params rf test %d %d", uiLoops, uiRate);
+            iPower = (iPower<40) ? 40 : (iPower>82) ? 82 : iPower;
+            ESP_LOGI(TAG_FACTORY_TESTING, "Getted params rf test %d %d power %d", uiLoops, uiRate, iPower);
+            esp_wifi_set_max_tx_power(iPower);
             if (RfTest_start(uiLoops, uiRate) == false) {
                 HTTP_ResponseErrorCustom(xReq, 500, HTTP_CONTENT_TEXT, "Error starting test");
             } else {
@@ -701,10 +701,9 @@ void __URI_get_wifi(httpd_req_t * xReq)
 cJSON * xJsonInfo = cJSON_CreateObject();
 char cStrTemp[1024*3] = "";
 char cValue[6];
-uint16_t uiIdx;
+uint16_t uiIdx = 0;
 uint16_t uiTotal;
-uint16_t uiMaxRf = 0;
-uint16_t uiMinRf = 0xFFFF;
+uint32_t uiAverageRf = 0;
 
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /wifi");
 
@@ -712,14 +711,12 @@ uint16_t uiMinRf = 0xFFFF;
     cJSON_AddStringToObject(xJsonInfo, "rfRunning", (RfTest_IsRunning() == true) ? "true" : "false");
     cJSON_AddNumberToObject(xJsonInfo, "rfDetections", uiTotal);
 
-    strcpy(cStrTemp, "");
     for (uiIdx=0; ((uiIdx<uiTotal)&&(uiIdx<MAX_RF_BUFFER)); uiIdx++) {
-        if (uiMaxRf < RfTest_GetArrayMeasures()[uiIdx]) uiMaxRf = RfTest_GetArrayMeasures()[uiIdx];
-        if (uiMinRf > RfTest_GetArrayMeasures()[uiIdx]) uiMinRf = RfTest_GetArrayMeasures()[uiIdx];
+        uiAverageRf += RfTest_GetArrayMeasures()[uiIdx];
         strcat(cStrTemp, itoa(RfTest_GetArrayMeasures()[uiIdx], cValue, 10)); strcat(cStrTemp, ","); 
     } 
-    cJSON_AddNumberToObject(xJsonInfo, "rfMax", uiMaxRf);
-    cJSON_AddNumberToObject(xJsonInfo, "rfMin", uiMinRf);
+    if (uiIdx) uiAverageRf /= uiIdx;
+    cJSON_AddNumberToObject(xJsonInfo, "rfAverage", uiAverageRf);
     cJSON_AddStringToObject(xJsonInfo, "rfMeasures", cStrTemp);
 
     HTTP_ResponseSend(xReq, cJSON_Print(xJsonInfo), HTTP_CONTENT_JSON);
@@ -749,7 +746,6 @@ uint16_t uiIdx;
 
     HTTP_ResponseSend(xReq, cJSON_Print(xJsonInfo), HTTP_CONTENT_JSON);
     cJSON_Delete(xJsonInfo);
-    cJSON_Delete(xJsonArray);
 }
 
 void __URI_post_reset(httpd_req_t * xReq)
