@@ -100,13 +100,13 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_SETTIME:             if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_RISE_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "SET RISE TIME");
                                                         LOAD_SetRiseTime(((uint64_t)dValue)*1000000);
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_FADETIME:            if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_FALL_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "SET FALL TIME");
                                                         LOAD_SetFallTime(((uint64_t)dValue)*1000000);
                                                     }
@@ -183,13 +183,13 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_SETTIME:             if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_RISE_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET RISE TIME");
                                                         MEM_SendInfo(uiChild, xVar, LOAD_GetRiseTime()/1000000);
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_FADETIME:            if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_FALL_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET FALL TIME");
                                                         MEM_SendInfo(uiChild, xVar, LOAD_GetFallTime()/1000000);
                                                     }
