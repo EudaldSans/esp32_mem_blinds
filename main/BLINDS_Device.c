@@ -100,13 +100,13 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_SETTIME:             if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_RISE_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "SET RISE TIME");
                                                         LOAD_SetRiseTime(((uint64_t)dValue)*1000000);
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_FADETIME:            if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_FALL_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "SET FALL TIME");
                                                         LOAD_SetFallTime(((uint64_t)dValue)*1000000);
                                                     }
@@ -118,6 +118,7 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
                                                     LOAD_SetMode(DEFAULT_BLIND_MODE);
                                                     LOAD_SetRiseTime(DEFAULT_RISE_TIME);
                                                     LOAD_SetFallTime(DEFAULT_FALL_TIME);
+                                                    LOAD_SetCalibrated(false);
                                                     break;
 
         case PROTOCOL_VARIABLE_IDENTIFY:            ESP_LOGI(TAG_DEVICE, "SET IDENTIFY");
@@ -158,7 +159,7 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
 
         case PROTOCOL_VARIABLE_CALIBRATION:         if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET CALIBRATION");
-                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsCalibrating());
+                                                        MEM_SendInfo(1, xVar, (LOAD_IsCalibrating() == true) ? 1 : (LOAD_IsCalibrated() == false) ? 2 : 0);
                                                     }
                                                     break;
 
@@ -182,13 +183,13 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_SETTIME:             if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_RISE_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET RISE TIME");
                                                         MEM_SendInfo(uiChild, xVar, LOAD_GetRiseTime()/1000000);
                                                     }
                                                     break;
 
-        case PROTOCOL_VARIABLE_FADETIME:            if (uiChild == 1) {
+        case PROTOCOL_VARIABLE_BLINDS_FALL_TIME:    if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET FALL TIME");
                                                         MEM_SendInfo(uiChild, xVar, LOAD_GetFallTime()/1000000);
                                                     }
@@ -201,6 +202,7 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
                                                     MEM_SendInfo(1, PROTOCOL_VARIABLE_BLIND_MODE, (double)((LOAD_GetMode() == BLIND_MODE_SUNBLIND) ? 1 : 0));
                                                     MEM_SendInfo(1, PROTOCOL_VARIABLE_SETTIME, LOAD_GetRiseTime()/1000000);
                                                     MEM_SendInfo(1, PROTOCOL_VARIABLE_FADETIME, LOAD_GetFallTime()/1000000);
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, (LOAD_IsCalibrating() == true) ? 1 : (LOAD_IsCalibrated() == false) ? 2 : 0);
                                                     break;
 
         default:                                    break;

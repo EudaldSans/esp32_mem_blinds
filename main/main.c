@@ -19,6 +19,7 @@
 #include "BLINDS_Load.h"
 #include "factory_testing.h"
 
+#include "ges_nvs.h"
 #include "ges_debug.h"
 
 /* TYPES */
@@ -72,6 +73,8 @@ esp_chip_info_t chip_info;
 
     printf("********************************\n");
     fflush(stdout);
+
+    NVS_Init(); NVS_WriteStrToModule("OTA", "FW", "21000333_B_1.1.0");
 
     if(TEST_IsFactoryTestPassed() == true) {
         if (MEM_StartComs(0, DEVICE_SetCmd, DEVICE_GetCmd, NULL, DEVICE_Reset) == false) ESP_LOGE(TAG_MAIN, "Error creating MEM Wireless coms\n");
