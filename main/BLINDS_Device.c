@@ -202,6 +202,7 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
                                                     MEM_SendInfo(1, PROTOCOL_VARIABLE_BLIND_MODE, (double)((LOAD_GetMode() == BLIND_MODE_SUNBLIND) ? 1 : 0));
                                                     MEM_SendInfo(1, PROTOCOL_VARIABLE_SETTIME, LOAD_GetRiseTime()/1000000);
                                                     MEM_SendInfo(1, PROTOCOL_VARIABLE_FADETIME, LOAD_GetFallTime()/1000000);
+                                                    MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, (LOAD_IsCalibrating() == true) ? 1 : (LOAD_IsCalibrated() == false) ? 2 : 0);
                                                     break;
 
         default:                                    break;
