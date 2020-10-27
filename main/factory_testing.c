@@ -786,7 +786,7 @@ void TEST_WifiInit(){
 
 bool TEST_FactoryTestStart(void)
 {
-   TEST_WifiInit();
+    TEST_WifiInit();
     ButtonTest_Init(1);
     RelayTest_Init(1);
     MeterTest_Init(1);
