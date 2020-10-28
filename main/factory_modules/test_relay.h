@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define PIN_RELAY_UP                33
+#define PIN_RELAY_UP                2
 #define PIN_RELAY_DOWN              4
 #define PIN_V                       35
 #define PIN_I                       32

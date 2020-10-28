@@ -4,9 +4,9 @@
 #define GPIO_INA_V              25
 #define INA_VOLTAGE             1650
 
-#define HLW8012_SEL             21
+#define HLW8012_SEL             27
 #define HLW8012_CF              26 
-#define HLW8012_CF1             27
+#define HLW8012_CF1             34
 #define HLW8012_VOLTAGE_PERIOD  (60 * 1000 * 1000)
 
 bool MeterTest_Init(uint8_t uiCore);
