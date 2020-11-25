@@ -14,13 +14,13 @@
 
 /* DEFINES */
 /* ------- */
-#define PIN_RELAY_UP                33
+#define PIN_RELAY_UP                2
 #define PIN_RELAY_DOWN              4
 
 #define PIN_VREF                    25
 #define PIN_CF                      26
-#define PIN_CF1                     27
-#define PIN_SEL                     21
+#define PIN_CF1                     34
+#define PIN_SEL                     27
 
 #define PIN_SINCRO                  35
 #define PIN_SRS                     32
