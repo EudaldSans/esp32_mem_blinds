@@ -31,7 +31,7 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-void TEST_WifiInit();
+void TEST_WifiInit(void);
 bool TEST_FactoryTestStart(void);
 bool TEST_IsFactoryTestPassed(void);
 
