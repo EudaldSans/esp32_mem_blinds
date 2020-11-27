@@ -83,8 +83,8 @@ void __URI_get_rssi(httpd_req_t * xReq);
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-void factorytest_updateNVS();
-void _reinitStep();
+void factorytest_updateNVS(void);
+void _reinitStep(void);
 void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s);
 
 /* INTERNAL VARIABLES */
@@ -129,45 +129,47 @@ bool _factorytest_webStart(SERVER_OBJ* xWebUi)
 
 TEST_STEPS factorytest_getState(void)
 {
+bool res;
+uint16_t uiState = (uint16_t)TEST_STEP0;
+
     NVS_Init();
-    bool res;
-    uint16_t uiState = (uint16_t)TEST_STEP0;
     res = NVS_ReadInt16(FACTORY_TEST_NVS_KEY_STATE, &uiState);
     ESP_LOGI(TAG_FACTORY_TESTING, "getState() : %d (%s)", (int)uiState, res ? "OK" : "ERROR");
     return (TEST_STEPS)uiState;
 }
 
-bool factorytest_setState(TEST_STEPS step){
+bool factorytest_setState(TEST_STEPS step)
+{
+bool res = false;
+
     NVS_Init();
-    bool res = false;
     res = NVS_WriteInt16(FACTORY_TEST_NVS_KEY_STATE, (uint16_t)step);
     ESP_LOGI(TAG_FACTORY_TESTING, "setState(%d) : %s", step, res ? "true": "false");
     _reinitStep();
     return res;
 }
 
-void _reinitStep(){
+void _reinitStep(void)
+{
     NVS_Init();
     resets = 1;
     NVS_WriteInt16(FACTORY_TEST_NVS_KEY_RESETS, resets);
 }
 
-char * _state_to_string(TEST_STEPS state){
-    switch(state){
-        case TEST_STEP0:
-            return "phase0";
-        case TEST_STEP1:
-            return "phase1";
-        case TEST_STEP2:
-            return "phase2";
-        case TEST_PASSED:
-            return "passed";
-        default:
-            return "unknown";
+char * _state_to_string(TEST_STEPS state)
+{
+    switch(state)
+    {
+        case TEST_STEP0:        return "phase0"; break;
+        case TEST_STEP1:        return "phase1"; break;
+        case TEST_STEP2:        return "phase2"; break;
+        case TEST_PASSED:       return "passed"; break;
+        default:                return "unknown"; break;
     }
 }
 
-TEST_STEPS stateFromString(char * state){
+TEST_STEPS stateFromString(char * state)
+{
     if(strcmp(state, "phase0")==0)
         return TEST_STEP0;
     else if(strcmp(state, "phase1")==0)
@@ -200,11 +202,13 @@ void __URI_root(httpd_req_t * xReq)
 
 void __URI_get_buttons(httpd_req_t * xReq)
 {
-    cJSON * payload = cJSON_CreateObject();
-    cJSON * obj;
-    char * payload_str;
-    char key[10];
-    for(int i=0; i<ButtonTest_GetTotalButtons(); i++){
+cJSON * payload = cJSON_CreateObject();
+cJSON * obj;
+char * payload_str;
+char key[10];
+
+    for(int i=0; i<ButtonTest_GetTotalButtons(); i++)
+    {
         snprintf(key, sizeof(key), "%d", i);
         cJSON_AddItemToObject(payload, key, obj = cJSON_CreateObject());
         cJSON_AddNumberToObject(obj, "shortPulsations", ButtonTest_GetShortPulsations(i));
@@ -212,18 +216,17 @@ void __URI_get_buttons(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "timestamp", (double)ButtonTest_GetTimestamp(i));
     }
 
-
     payload_str = cJSON_Print(payload);
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /buttons\n%s\n", payload_str);
     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
     cJSON_Delete(payload);
 }
 
-void __URI_post_buttons(httpd_req_t * xReq){
-    cJSON * payload = cJSON_CreateObject();
+void __URI_post_buttons(httpd_req_t * xReq)
+{
+cJSON * payload = cJSON_CreateObject();
 
     ButtonTest_Reset();
-
     cJSON_AddBoolToObject(payload, "result", true);
     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
     cJSON_Delete(payload);
@@ -231,11 +234,13 @@ void __URI_post_buttons(httpd_req_t * xReq){
 
 void __URI_get_relays(httpd_req_t * xReq)
 {
-    cJSON * payload = cJSON_CreateObject();
-    cJSON * obj;
-    char * payload_str;
-    char key[10];
-    for(int i=0; i<RelayTest_GetTotalRelays(); i++){
+cJSON * payload = cJSON_CreateObject();
+cJSON * obj;
+char * payload_str;
+char key[10];
+
+    for(int i=0; i<RelayTest_GetTotalRelays(); i++)
+    {
         snprintf(key, sizeof(key), "%d", i);
         cJSON_AddItemToObject(payload, key, obj = cJSON_CreateObject());
         cJSON_AddBoolToObject(obj, "status", (bool)RelayTest_GetStatus(i));
@@ -244,66 +249,62 @@ void __URI_get_relays(httpd_req_t * xReq)
         cJSON_AddNumberToObject(obj, "releaseTime", RelayTest_GetReleaseTime(i));
     }
 
-
     payload_str = cJSON_Print(payload);
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /relays\n%s\n", payload_str);
     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
     cJSON_Delete(payload);
 }
 
-void __URI_post_relays(httpd_req_t * xReq){
-    char cData[500];
-    size_t bSize;
-    int bLenGetData;
-    bool result = true;
-    int ret = false;
+void __URI_post_relays(httpd_req_t * xReq)
+{
+char cData[500];
+size_t bSize;
+int bLenGetData;
+bool result = true;
 
-    cJSON * reqData;
-    cJSON * payload = cJSON_CreateObject();
-    cJSON * relay;
-    cJSON * item;
+cJSON * reqData;
+cJSON * payload = cJSON_CreateObject();
+cJSON * relay;
+cJSON * item;
 
-    int index;
+int index;
 
     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /relays\n%s", cData);
     if (bLenGetData) {
         reqData= cJSON_Parse(cData);
-        cJSON_ArrayForEach(relay, reqData){
-            if(cJSON_IsObject(relay)){
+        cJSON_ArrayForEach(relay, reqData) {
+            if(cJSON_IsObject(relay)) {
                 index = atoi(relay->string);
-                if(cJSON_HasObjectItem(relay, "status")){
+                if(cJSON_HasObjectItem(relay, "status")) {
                     item = cJSON_GetObjectItem(relay, "status");
                     if(cJSON_IsBool(item)){
-                        ret = RelayTest_SetStatus(index, cJSON_IsTrue(item));
-                        result = (ret != -1);
+                        if (RelayTest_SetStatus(index, cJSON_IsTrue(item)) == -1) result = false;
                     }
                 }
-                if(cJSON_HasObjectItem(relay, "operateTime")){
+                if(cJSON_HasObjectItem(relay, "operateTime")) {
                     item = cJSON_GetObjectItem(relay, "operateTime");
-                    if(cJSON_IsNumber(item)){
-                        ret = RelayTest_SetOperateTime(index, item->valueint);
-                        result = (ret != -1);
+                    if(cJSON_IsNumber(item)) {
+                        if (RelayTest_SetOperateTime(index, item->valueint) == -1) result = false;
                     }
                 }
-                if(cJSON_HasObjectItem(relay, "releaseTime")){
+                if(cJSON_HasObjectItem(relay, "releaseTime")) {
                     item = cJSON_GetObjectItem(relay, "releaseTime");
-                    if(cJSON_IsNumber(item)){
-                        ret = RelayTest_SetReleaseTime(index, item->valueint);
-                        result = (ret != -1);
+                    if(cJSON_IsNumber(item)) {
+                        if (RelayTest_SetReleaseTime(index, item->valueint) == -1) result = false;
                     }
                 }
-                if(cJSON_HasObjectItem(relay, "runCalibration")){
+                if(cJSON_HasObjectItem(relay, "runCalibration")) {
                     item = cJSON_GetObjectItem(relay, "runCalibration");
                     if(cJSON_IsTrue(item)){
-                        RelayTest_Calibrate(index);
+                        if (RelayTest_Calibrate(index) == -1) result = false;
                     }
                 }
-                if(cJSON_HasObjectItem(relay, "runResistiveCalibration")){
+                if(cJSON_HasObjectItem(relay, "runResistiveCalibration")) {
                     item = cJSON_GetObjectItem(relay, "runResistiveCalibration");
                     if(cJSON_IsTrue(item)){
-                        RelayTest_ResistorCalibrate(index);
+                        if (RelayTest_ResistorCalibrate(index) == -1) result = false;
                     }
                 }
             }
@@ -316,9 +317,10 @@ void __URI_post_relays(httpd_req_t * xReq){
 }
 void __URI_get_meter(httpd_req_t * xReq)
 {
-    cJSON* calibrationParams = cJSON_CreateObject();
-    cJSON * payload = cJSON_CreateObject();
-    char * payload_str;
+cJSON* calibrationParams = cJSON_CreateObject();
+cJSON * payload = cJSON_CreateObject();
+char * payload_str;
+
     cJSON_AddNumberToObject(payload, "power", MeterTest_GetPower());
     cJSON_AddNumberToObject(payload, "voltage", MeterTest_GetVoltage());
     cJSON_AddNumberToObject(payload, "current", MeterTest_GetCurrent());
@@ -331,67 +333,67 @@ void __URI_get_meter(httpd_req_t * xReq)
     cJSON_AddItemToObject(payload, "calibrationParams", calibrationParams);
     cJSON_AddNumberToObject(payload, "calibrationsDone", MeterTest_GetCalibrations());
 
-
     payload_str = cJSON_Print(payload);
     ESP_LOGI(TAG_FACTORY_TESTING, "GET /meter\n%s\n", payload_str);
     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
     cJSON_Delete(payload);
 }
 
-void __URI_post_meter(httpd_req_t * xReq){
-    char cData[500];
-    size_t bSize;
-    int bLenGetData;
-    bool result = true;
+void __URI_post_meter(httpd_req_t * xReq)
+{
+char cData[500];
+size_t bSize;
+int bLenGetData;
+bool result = true;
 
-    cJSON* payload = cJSON_CreateObject();
-    cJSON* reqData;
-    cJSON* obj;
-    cJSON* tmp;
-    float val;
+cJSON* payload = cJSON_CreateObject();
+cJSON* reqData;
+cJSON* obj;
+cJSON* tmp;
+float val;
 
     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /meter\n%s", cData);
     if (bLenGetData) {
         reqData= cJSON_Parse(cData);
-        if(cJSON_HasObjectItem(reqData, "kp")){
+        if(cJSON_HasObjectItem(reqData, "kp")) {
             obj = cJSON_GetObjectItem(reqData, "kp");
             val = atof(cJSON_Print(obj));
-            MeterTest_SetKp(val);
+            if (MeterTest_SetKp(val) == false) result = false;
         }
-        if(cJSON_HasObjectItem(reqData, "kv")){
+        if(cJSON_HasObjectItem(reqData, "kv")) {
             obj = cJSON_GetObjectItem(reqData, "kv");
             val = atof(cJSON_Print(obj));
-            MeterTest_SetKv(val);
+            if (MeterTest_SetKv(val) == false) result = false;
         }
-        if(cJSON_HasObjectItem(reqData, "ki")){
+        if(cJSON_HasObjectItem(reqData, "ki")) {
             obj = cJSON_GetObjectItem(reqData, "ki");
             val = atof(cJSON_Print(obj));
-            MeterTest_SetKi(val);
+            if (MeterTest_SetKi(val) == false) result = false;
         }
-        if(cJSON_HasObjectItem(reqData, "calibrationParams")){
+        if(cJSON_HasObjectItem(reqData, "calibrationParams")) {
             obj = cJSON_GetObjectItem(reqData, "calibrationParams");
-            if(cJSON_HasObjectItem(obj, "power")){
+            if(cJSON_HasObjectItem(obj, "power")) {
                 tmp = cJSON_GetObjectItem(obj, "power");
                 val = atof(cJSON_Print(tmp));
                 MeterTest_SetCalibrationPower(val);
             }
-            if(cJSON_HasObjectItem(obj, "voltage")){
+            if(cJSON_HasObjectItem(obj, "voltage")) {
                 tmp = cJSON_GetObjectItem(obj, "voltage");
                 val = atof(cJSON_Print(tmp));
                 MeterTest_SetCalibrationVoltage(val);
             }
-            if(cJSON_HasObjectItem(obj, "current")){
+            if(cJSON_HasObjectItem(obj, "current")) {
                 tmp = cJSON_GetObjectItem(obj, "current");
                 val = atof(cJSON_Print(tmp));
                 MeterTest_SetCalibrationCurrent(val);
             }
         }
-        if(cJSON_HasObjectItem(reqData, "runCalibration")){
+        if(cJSON_HasObjectItem(reqData, "runCalibration")) {
             obj = cJSON_GetObjectItem(reqData, "runCalibration");
             if(cJSON_IsTrue(obj)){
-                MeterTest_Calibrate();
+                if (MeterTest_Calibrate() == false) result = false;
             }
         }
     }
@@ -401,34 +403,39 @@ void __URI_post_meter(httpd_req_t * xReq){
     cJSON_Delete(payload);
 }
 
-void __URI_get_ac(httpd_req_t * xReq) {
-    cJSON * xPayload = cJSON_CreateObject();
+void __URI_get_ac(httpd_req_t * xReq) 
+{
+cJSON * xPayload = cJSON_CreateObject();
+
     cJSON_AddNumberToObject(xPayload, "T", SyncTest_GetPeriod());
     cJSON_AddNumberToObject(xPayload, "Ton", SyncTest_GetPeriod()/2);
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
     cJSON_Delete(xPayload);
 }
 
-void __URI_get_state(httpd_req_t * xReq) {
-    uint16_t step = factorytest_getState();
-    char * step_description = _state_to_string(step);
-    cJSON * xPayload = cJSON_CreateObject();
+void __URI_get_state(httpd_req_t * xReq) 
+{
+uint16_t step = factorytest_getState();
+char * step_description = _state_to_string(step);
+cJSON * xPayload = cJSON_CreateObject();
+
     cJSON_AddItemToObject(xPayload, "state", cJSON_CreateString(step_description));
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
     cJSON_Delete(xPayload);
 }
 
-void __URI_post_state(httpd_req_t * xReq) {
-    char cData[500];
-    size_t bSize;
-    int bLenGetData;
-    bool result = true;
-    cJSON * xJsonData;
-    cJSON * xJsonObj;
-    cJSON * xJsonResp = cJSON_CreateObject();
+void __URI_post_state(httpd_req_t * xReq) 
+{
+char cData[500];
+size_t bSize;
+int bLenGetData;
+bool result = true;
+cJSON * xJsonData;
+cJSON * xJsonObj;
+cJSON * xJsonResp = cJSON_CreateObject();
 
-    char * state_string = NULL;
-    TEST_STEPS state;
+char * state_string = NULL;
+TEST_STEPS state;
 
     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
@@ -446,8 +453,7 @@ void __URI_post_state(httpd_req_t * xReq) {
     if(state_string != NULL ){
         state = stateFromString(state_string);
         result = factorytest_setState(state);
-    }
-    else{
+    } else {
         result = false;
     }
 
@@ -456,33 +462,30 @@ void __URI_post_state(httpd_req_t * xReq) {
     cJSON_Delete(xJsonResp);
 }
 
-void __URI_get_info(httpd_req_t * xReq) {
-    bool res = false;
-    uint16_t currentResets = resets - 1;
-    char hwId[33];
-    size_t len;
-    size_t* len_ptr;
-    uint8_t* macBytes;
-    char mac[MAC_BYTES_LEN*2 + 1];
-    char secret[65];
-    char serialId[32];
-    char fwVersion[128] = "undefined";
-    size_t fwVersion_len = sizeof(fwVersion);
-    uint16_t date;
-    char error_code[] = "undefined";
-    cJSON * xPayload = cJSON_CreateObject();
-
-
+void __URI_get_info(httpd_req_t * xReq) 
+{
+bool res = false;
+uint16_t currentResets = resets - 1;
+char hwId[33];
+size_t len;
+size_t* len_ptr;
+uint8_t* macBytes;
+char mac[MAC_BYTES_LEN*2 + 1];
+char secret[65];
+char serialId[32];
+char fwVersion[128] = "undefined";
+size_t fwVersion_len = sizeof(fwVersion);
+uint16_t date;
+char error_code[] = "undefined";
+cJSON * xPayload = cJSON_CreateObject();
 
     res = NVS_ReadInt16(KEY_DATE, &date);
-    if(!res)
-        date = 0;
+    if(!res) date = 0;
 
     len = sizeof(serialId);
     len_ptr = &len;
     res = NVS_ReadStr(KEY_SERIAL_ID, serialId, len_ptr);
-    if(!res)
-        strcpy(serialId, error_code);
+    if(!res) strcpy(serialId, error_code);
     
     NVS_ReadStrFromModule("OTA", "FW", fwVersion, &fwVersion_len);
     macBytes = WIFI_GetMacAddress();
@@ -500,8 +503,10 @@ void __URI_get_info(httpd_req_t * xReq) {
     cJSON_Delete(xPayload);
 }
 
-void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s){
-    char buffer[3];
+void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s)
+{
+char buffer[3];
+
     memset(s, 0, len_s);
     for(int i=0; i<len_a; i++){
         snprintf(buffer, sizeof(buffer), "%02x", a[i]);
@@ -509,22 +514,22 @@ void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s){
     }
 }
 
-void __URI_post_info(httpd_req_t * xReq) {
-    char cData[500];
-    size_t bSize;
-    size_t len;
-    int bLenGetData;
-    bool result = false;
-    bool ret = false;
-    cJSON * xJsonData;
-    cJSON * xJsonObj;
-    cJSON * xJsonResp = cJSON_CreateObject();
+void __URI_post_info(httpd_req_t * xReq) 
+{
+char cData[500];
+size_t bSize;
+size_t len;
+int bLenGetData;
+bool result = true;
+cJSON * xJsonData;
+cJSON * xJsonObj;
+cJSON * xJsonResp = cJSON_CreateObject();
 
-    char * hwId = NULL;
-    char * secret = NULL;
-    char * serialId = NULL;
-    cJSON * dateObj = NULL;
-    uint16_t date = 0;
+char * hwId = NULL;
+char * secret = NULL;
+char * serialId = NULL;
+cJSON * dateObj = NULL;
+uint16_t date = 0;
 
     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
@@ -542,30 +547,26 @@ void __URI_post_info(httpd_req_t * xReq) {
         ERROR("Empty data in set info");
     }
 
-    if(secret != NULL ){
+    if(secret != NULL) {
         ESP_LOGI(TAG_FACTORY_TESTING, "set secret : %s", secret);
         len = strlen(secret);
-        ret = INST_SetClientSecret(secret, len);
-        result = ret || result;
+        if (INST_SetClientSecret(secret, len) == false) result = false;
     }
-    if(hwId != NULL ){
+    if(hwId != NULL) {
         ESP_LOGI(TAG_FACTORY_TESTING, "set hwId : %s", hwId);
         len = strlen(hwId);
-        ret = INST_SetClientId(hwId, len);
-        result = ret || result;
+        if (INST_SetClientId(hwId, len) == false) result = false;
     }
 
-    if(serialId != NULL ){
+    if(serialId != NULL) {
         ESP_LOGI(TAG_FACTORY_TESTING, "set serialId : %s", serialId);
-        ret = NVS_WriteStr(KEY_SERIAL_ID , serialId);
-        result = ret || result;
+        if (NVS_WriteStr(KEY_SERIAL_ID , serialId) == false) result = false;
     }
 
-    if (cJSON_IsNumber(dateObj)){
+    if (cJSON_IsNumber(dateObj)) {
         date = dateObj->valueint;
         ESP_LOGI(TAG_FACTORY_TESTING, "set date : %d", date);
-        ret = NVS_WriteInt16(KEY_DATE, date);
-        result = ret || result;
+        if (NVS_WriteInt16(KEY_DATE, date) == false) result = false;
     }
 
     cJSON_AddBoolToObject(xJsonResp, "result", result);
@@ -575,10 +576,12 @@ void __URI_post_info(httpd_req_t * xReq) {
 
 void __URI_get_leds(httpd_req_t * xReq)
 {
-    cJSON* payload = cJSON_CreateObject();
-    cJSON* obj;
-    char key[10];
-    for(int i=0; i < LedsTest_getTotalLeds(); i++){
+cJSON* payload = cJSON_CreateObject();
+cJSON* obj;
+char key[10];
+
+    for(int i=0; i < LedsTest_getTotalLeds(); i++)
+    {
         obj = cJSON_CreateObject();
         cJSON_AddNumberToObject(obj, "value", LedsTest_GetVal(i));
         cJSON_AddNumberToObject(obj, "maxValue", LedsTest_GetMax(i));
@@ -591,35 +594,32 @@ void __URI_get_leds(httpd_req_t * xReq)
 
 void __URI_set_leds(httpd_req_t * xReq)
 {
-    size_t bSize;
-    int bLenGetData;
-    char cData[500];
-    bool result = true;
-    bool ret;
+size_t bSize;
+int bLenGetData;
+char cData[500];
+bool result = true;
 
-    cJSON* payload = cJSON_CreateObject();
-    cJSON* reqData;
-    cJSON* led;
-    cJSON* obj;
+cJSON* payload = cJSON_CreateObject();
+cJSON* reqData;
+cJSON* led;
+cJSON* obj;
 
-    int i;
+int i;
 
     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /leds\n%s", cData);
     if (bLenGetData) {
         reqData= cJSON_Parse(cData);
-        cJSON_ArrayForEach(led, reqData){
+        cJSON_ArrayForEach(led, reqData) {
             i = atoi(led->string);
             obj = cJSON_GetObjectItem(led, "maxValue");
-            if(cJSON_IsNumber(obj)){
-                ret = LedsTest_SetMax(i, obj->valueint);
-                result = result && ret;
+            if(cJSON_IsNumber(obj)) {
+                if (LedsTest_SetMax(i, obj->valueint) == false) result = false;
             }
             obj = cJSON_GetObjectItem(led, "value");
-            if(cJSON_IsNumber(obj)){
-                ret = LedsTest_SetVal(i, obj->valueint);
-                result = result && ret;
+            if(cJSON_IsNumber(obj)) {
+                if (LedsTest_SetVal(i, obj->valueint) == false) result = false;
             }
         }
     }
@@ -659,6 +659,7 @@ int8_t iPower = 40;
 
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /wifi");
     if (RfTest_IsRunning() == true) {
+        cJSON_AddBoolToObject(xJsonResp, "result", false);
         HTTP_ResponseSend(xReq, cJSON_Print(xJsonResp), HTTP_CONTENT_JSON);
         cJSON_Delete(xJsonResp);
         return;
@@ -682,6 +683,7 @@ int8_t iPower = 40;
             if (RfTest_start(uiLoops, uiRate) == false) {
                 HTTP_ResponseErrorCustom(xReq, 500, HTTP_CONTENT_TEXT, "Error starting test");
             } else {
+                cJSON_AddBoolToObject(xJsonResp, "result", true);
                 HTTP_ResponseSend(xReq, cJSON_Print(xJsonResp), HTTP_CONTENT_JSON);
                 ESP_LOGI(TAG_FACTORY_TESTING, "TEST Loops(%d) Rate(%d)", uiLoops, uiRate);
             }
@@ -750,8 +752,9 @@ uint16_t uiIdx;
 
 void __URI_post_reset(httpd_req_t * xReq)
 {
+cJSON * xPayload = cJSON_CreateObject();
+
     ESP_LOGI(TAG_FACTORY_TESTING, "POST /reset");
-    cJSON * xPayload = cJSON_CreateObject();
     cJSON_AddBoolToObject(xPayload, "result", true);
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
     cJSON_Delete(xPayload);
@@ -759,7 +762,8 @@ void __URI_post_reset(httpd_req_t * xReq)
     esp_restart();
 }
 
-void TEST_WifiInit(){
+void TEST_WifiInit(void)
+{
     //Init NVS
     NVS_Init();
     TEST_STEPS state = factorytest_getState();
@@ -796,13 +800,15 @@ bool TEST_FactoryTestStart(void)
     return (xTaskCreatePinnedToCore(_factorytest_taskLoop, "FACTORY_TESTING", CONFIG_STACK_FACTORY_TESTING, NULL, 5, NULL, tskNO_AFFINITY) == pdPASS);
 }
 
-void factorytest_updateNVS(){
+void factorytest_updateNVS(void)
+{
     NVS_ReadInt16(FACTORY_TEST_NVS_KEY_RESETS, &resets);
     resets++;
     NVS_WriteInt16(FACTORY_TEST_NVS_KEY_RESETS, resets);
 }
 
-bool TEST_IsFactoryTestPassed(void){ 
+bool TEST_IsFactoryTestPassed(void)
+{ 
     NVS_Init();
     bool testsPassed = (factorytest_getState() == TEST_PASSED);
     return testsPassed;
