@@ -232,6 +232,11 @@ bool LOAD_SetRiseTime(uint64_t uiMicroSeconds)
         if (NVS_WriteInt64(NVM_KEY_RISE, uiMicroSeconds) == false) { ESP_LOGE(TAG_LOAD, "Fail saving rise time"); return false; }
         uiRiseBlind1 = uiMicroSeconds; BLINDS_SetRiseTime(&xBlind1, uiRiseBlind1);
         ESP_LOGI(TAG_LOAD, "RISE TIME %lld", uiRiseBlind1);
+        
+        if(!LOAD_IsCalibrated()){
+            LOAD_SetCalibrated(true);
+            MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 0);
+        }
     }
     return true;
 }
@@ -242,6 +247,11 @@ bool LOAD_SetFallTime(uint64_t uiMicroSeconds)
         if (NVS_WriteInt64(NVM_KEY_FALL, uiMicroSeconds) == false) { ESP_LOGE(TAG_LOAD, "Fail saving fall time"); return false; }
         uiFallBlind1 = uiMicroSeconds; BLINDS_SetFallTime(&xBlind1, uiFallBlind1);
         ESP_LOGI(TAG_LOAD, "FALL TIME %lld", uiFallBlind1);
+
+        if(!LOAD_IsCalibrated()){
+            LOAD_SetCalibrated(true);
+            MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 0);
+        }
     }
     return true;
 }
