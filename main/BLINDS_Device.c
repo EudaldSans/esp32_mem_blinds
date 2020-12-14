@@ -45,11 +45,11 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
 {
     switch (xVar)
     {
-        case PROTOCOL_VARIABLE_STATUS:              if (uiChild == 1) {
-                                                        ESP_LOGI(TAG_DEVICE, "SET STATUS");
-                                                        if (dValue) LOAD_Open(); else LOAD_Close();
-                                                    }
-                                                    break;
+        // case PROTOCOL_VARIABLE_STATUS:              if (uiChild == 1) {
+        //                                                 ESP_LOGI(TAG_DEVICE, "SET STATUS");
+        //                                                 if (dValue) LOAD_Open(); else LOAD_Close();
+        //                                             }
+        //                                             break;
 
         case PROTOCOL_VARIABLE_LEVEL:               if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "SET LEVEL");
