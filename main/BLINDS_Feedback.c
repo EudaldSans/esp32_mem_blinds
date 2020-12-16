@@ -118,7 +118,7 @@ void FEEDBACK_CustomSignal(float fLum, uint16_t uiTimeOn, uint16_t uiTimeOff, ui
     } else { 
         LED_On(&xLedDown, fLum, false);
     }
-        
+
     TMR_SetPollTimer(&xTimerSignal, uiTimeMs*TIMER_MSEG);
     MTX_Unlock(&xFeedbackMtx);
 }
@@ -139,6 +139,15 @@ void FEEDBACK_CalibratingSignal(void)
     LED_Blink(&xLedUp, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
     LED_Blink(&xLedDown, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
     TMR_SetPollTimer(&xTimerSignal, SIGNAL_CALIBRATE_DURATION*TIMER_MSEG);
+    MTX_Unlock(&xFeedbackMtx);
+}
+
+void FEEDBACK_MoveEndSignal(void)
+{
+    MTX_Lock(&xFeedbackMtx);
+    LED_On(&xLedUp, SIGNAL_MOVE_END_LEVEL/100, false);
+    LED_On(&xLedDown, SIGNAL_MOVE_END_LEVEL/100, false);
+    TMR_SetPollTimer(&xTimerSignal, SIGNAL_MOVE_END_DURATION*TIMER_MSEG);
     MTX_Unlock(&xFeedbackMtx);
 }
 
