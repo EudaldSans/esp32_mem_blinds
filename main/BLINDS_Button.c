@@ -65,11 +65,11 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
                                         if (LOAD_IsStopped() == true) {
                                             ESP_LOGI(TAG_BUTTON_UP, "PULSE UP");
                                             LOAD_Open();
-                                            while(LOAD_IsGoingUp()) TMR_delay(100*TIMER_MSEG);
-                                            FEEDBACK_MoveEndSignal();
+                                            FEEDBACK_MovementSignal(60000);
                                         } else {
                                             ESP_LOGI(TAG_BUTTON_UP, "PULSE STOP");
                                             LOAD_Stop();
+                                            FEEDBACK_StopSignal();
                                         }
                                     }
                                 } else {
@@ -120,11 +120,11 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
                                         if (LOAD_IsStopped() == true) {
                                             ESP_LOGI(TAG_BUTTON_DOWN, "PULSE DOWN");
                                             LOAD_Close();
-                                            while(LOAD_IsGoingDown()) TMR_delay(100*TIMER_MSEG);
-                                            FEEDBACK_MoveEndSignal();
+                                            FEEDBACK_MovementSignal(60000);
                                         } else {
                                             ESP_LOGI(TAG_BUTTON_DOWN, "PULSE STOP");
                                             LOAD_Stop();
+                                            FEEDBACK_StopSignal();
                                         }
                                     }
                                 } else {
