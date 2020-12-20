@@ -125,7 +125,7 @@ void FEEDBACK_CustomSignal(float fLum, uint16_t uiTimeOn, uint16_t uiTimeOff, ui
 
     MTX_Lock(&xFeedbackMtx);
     bSignalMovement = false;
-    fLum = (fLum <= 0) ? 0 : (fLum > 1) ? 1 : fLum/100;
+    fLum = (fLum <= 0) ? 0 : (fLum > 100) ? 1 : fLum/100;
     LED_Off(&xLedUp, false);
     if (!fLum) {
         LED_Off(&xLedDown, false);
