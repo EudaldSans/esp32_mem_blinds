@@ -14,7 +14,6 @@
 #include <stddef.h>
 
 #include "ges_nvs.h"
-#include "ges_timer.h"
 #include "MEM_Main.h"
 #include "BLINDS_Device.h"
 #include "BLINDS_Feedback.h"
