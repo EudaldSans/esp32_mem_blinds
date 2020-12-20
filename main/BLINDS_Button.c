@@ -73,6 +73,7 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
                                         }
                                     }
                                 } else {
+                                    FEEDBACK_ErrorSignal();
                                     ESP_LOGW(TAG_BUTTON_UP, "warning button is locked");
                                 }
                                 break;
@@ -85,6 +86,7 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
                                         LOAD_Calibrate();
                                     }
                                 } else {
+                                    FEEDBACK_ErrorSignal();
                                     ESP_LOGW(TAG_BUTTON_UP, "warning button is locked");
                                 }
                                 break;
@@ -103,6 +105,7 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
                                         MEM_StartVisibility();
                                     }
                                 } else {
+                                    FEEDBACK_ErrorSignal();
                                     ESP_LOGW(TAG_BUTTON_UP, "warning button is locked");
                                 }
 			                    break;
@@ -128,6 +131,7 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
                                         }
                                     }
                                 } else {
+                                    FEEDBACK_ErrorSignal();
                                     ESP_LOGW(TAG_BUTTON_DOWN, "warning button is locked");
                                 }
                                 break;
@@ -140,6 +144,7 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
                                         LOAD_Calibrate();
                                     }
                                 } else {
+                                    FEEDBACK_ErrorSignal();
                                     ESP_LOGW(TAG_BUTTON_UP, "warning button is locked");
                                 }
                                 break;
@@ -158,6 +163,7 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
                                         MEM_StartVisibility();
                                     }
                                 } else {
+                                    FEEDBACK_ErrorSignal();
                                     ESP_LOGW(TAG_BUTTON_DOWN, "warning button is locked");
                                 }
 			                    break;
