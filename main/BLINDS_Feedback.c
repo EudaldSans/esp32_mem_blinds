@@ -80,12 +80,12 @@ void _feedback_signal_Task(void * xParams)
         } else if (LOAD_IsCalibrating() == true) {
             LED_Blink(&xLedUp, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
             LED_Blink(&xLedDown, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
-        } else if (LOAD_IsGoingUp() == true) {
-            LED_Off(&xLedDown, false);
-            LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
-        } else if (LOAD_IsGoingDown() == true) {
-            LED_Off(&xLedUp, false);
-            LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+        // } else if (LOAD_IsGoingUp() == true) {
+        //     LED_Off(&xLedDown, false);
+        //     LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+        // } else if (LOAD_IsGoingDown() == true) {
+        //     LED_Off(&xLedUp, false);
+        //     LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
         } else if (MEM_GetStatus() == MEM_STATUS_HIDE) {
             LED_Off(&xLedUp, false);
             LED_Blink(&xLedDown, SIGNAL_OFFLINE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_OFFLINE_ON, SIGNAL_OFFLINE_OFF, false);
