@@ -174,12 +174,12 @@ uint64_t LOAD_GetFallTime(void)                         { return BLINDS_GetFallT
 
 bool LOAD_IsOpening(void)                               
 { 
-    return BLINDS_isOpening(&xBlind1);
+    return BLINDS_IsOpening(&xBlind1);
 }
 
 bool LOAD_IsClosing(void)
 {
-    return BLINDS_isClosing(&xBlind1);
+    return BLINDS_IsClosing(&xBlind1);
 }
 
 bool LOAD_IsCalibrating(void)
@@ -194,7 +194,7 @@ bool LOAD_IsCalibrated(void)
 
 bool LOAD_IsStopped(void)
 {
-    return BLINDS_isStopped(&xBlind1);
+    return BLINDS_IsStopped(&xBlind1);
 }
 
 bool LOAD_SetMode(BLIND_MODES xMode)
