@@ -174,7 +174,11 @@ void FEEDBACK_MotionSignal(uint16_t uiTimeMs)
 
 void FEEDBACK_StopSignal(void)
 {
-    FEEDBACK_CustomSignal(SIGNAL_BLIND_STOP_LEVEL, SIGNAL_BLIND_STOP_ON, SIGNAL_BLIND_STOP_OFF, SIGNAL_BLIND_STOP_DURATION);
+    MTX_Lock(&xFeedbackMtx);
+    bMotionSignal = false;
+    LED_On(&xLedDown, SIGNAL_BLIND_STOP_LEVEL/100, false); LED_On(&xLedUp, SIGNAL_BLIND_STOP_LEVEL/100, false);
+    TMR_SetPollTimer(&xTimerSignal, SIGNAL_BLIND_STOP_DURATION*TIMER_MSEG);
+    MTX_Unlock(&xFeedbackMtx);
 }
 
 void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal)
