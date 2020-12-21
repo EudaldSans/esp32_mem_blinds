@@ -174,18 +174,20 @@ uint64_t LOAD_GetFallTime(void)                         { return BLINDS_GetFallT
 
 bool LOAD_IsGoingUp(void)                               
 { 
-bool bData;
+bool bUp;
+bool bDown;
 
-    BLINDS_GetStatus(&xBlind1, &bData, NULL, NULL);
-    return bData;
+    BLINDS_GetStatus(&xBlind1, &bUp, &bDown, NULL);
+    return ( BLINDS_GetMode(&xBlind1) == BLIND_MODE_STDBLIND) ? bUp : bDown ;
 }
 
 bool LOAD_IsGoingDown(void)
 {
-bool bData;
+bool bUp;
+bool bDown;
 
-    BLINDS_GetStatus(&xBlind1, NULL, &bData, NULL);
-    return bData;
+    BLINDS_GetStatus(&xBlind1, &bUp, &bDown, NULL);
+    return ( BLINDS_GetMode(&xBlind1) == BLIND_MODE_STDBLIND) ? bDown : bUp ;
 }
 
 bool LOAD_IsCalibrating(void)
