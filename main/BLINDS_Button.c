@@ -65,7 +65,7 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
                                         if (LOAD_IsStopped() == true) {
                                             ESP_LOGI(TAG_BUTTON_UP, "PULSE UP");
                                             LOAD_Open();
-                                            FEEDBACK_MovementSignal(60000);
+                                            FEEDBACK_MotionSignal(60000);
                                         } else {
                                             ESP_LOGI(TAG_BUTTON_UP, "PULSE STOP");
                                             LOAD_Stop();
@@ -120,7 +120,7 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
                                         if (LOAD_IsStopped() == true) {
                                             ESP_LOGI(TAG_BUTTON_DOWN, "PULSE DOWN");
                                             LOAD_Close();
-                                            FEEDBACK_MovementSignal(60000);
+                                            FEEDBACK_MotionSignal(60000);
                                         } else {
                                             ESP_LOGI(TAG_BUTTON_DOWN, "PULSE STOP");
                                             LOAD_Stop();
