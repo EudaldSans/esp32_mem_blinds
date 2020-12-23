@@ -141,13 +141,13 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
         
         case PROTOCOL_VARIABLE_WINDOW_UP:           if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET WINDOW UP");
-                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsGoingUp());
+                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsOpening());
                                                     }
                                                     break;
 
         case PROTOCOL_VARIABLE_WINDOW_DOWN:         if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET WINDOW DOWN");
-                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsGoingDown());
+                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsClosing());
                                                     }
                                                     break;
 

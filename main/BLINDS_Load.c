@@ -172,20 +172,14 @@ BLIND_MODES LOAD_GetMode(void)                          { return BLINDS_GetMode(
 uint64_t LOAD_GetRiseTime(void)                         { return BLINDS_GetRiseTime(&xBlind1); }
 uint64_t LOAD_GetFallTime(void)                         { return BLINDS_GetFallTime(&xBlind1); }
 
-bool LOAD_IsGoingUp(void)                               
+bool LOAD_IsOpening(void)                               
 { 
-bool bData;
-
-    BLINDS_GetStatus(&xBlind1, &bData, NULL, NULL);
-    return bData;
+    return BLINDS_IsOpening(&xBlind1);
 }
 
-bool LOAD_IsGoingDown(void)
+bool LOAD_IsClosing(void)
 {
-bool bData;
-
-    BLINDS_GetStatus(&xBlind1, NULL, &bData, NULL);
-    return bData;
+    return BLINDS_IsClosing(&xBlind1);
 }
 
 bool LOAD_IsCalibrating(void)
@@ -200,10 +194,7 @@ bool LOAD_IsCalibrated(void)
 
 bool LOAD_IsStopped(void)
 {
-bool bUp, bDown;
-
-    BLINDS_GetStatus(&xBlind1, &bUp, &bDown, NULL);
-    return ((bUp == false) && (bDown == false));
+    return BLINDS_IsStopped(&xBlind1);
 }
 
 bool LOAD_SetMode(BLIND_MODES xMode)

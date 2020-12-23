@@ -50,8 +50,8 @@ bool LOAD_Calibrate(void);
 bool LOAD_Regulate(uint8_t uiPercentatge);
 uint8_t LOAD_GetPercentatge(void);
 
-bool LOAD_IsGoingUp(void);
-bool LOAD_IsGoingDown(void);
+bool LOAD_IsOpening(void);
+bool LOAD_IsClosing(void);
 bool LOAD_IsCalibrating(void);
 bool LOAD_IsCalibrated(void);
 bool LOAD_IsStopped(void);
