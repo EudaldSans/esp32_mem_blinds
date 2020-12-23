@@ -145,11 +145,11 @@ uint8_t uiData8;
 
     if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0;
     if (NVS_ReadBoolean(NVM_KEY_CALIB, &bCalibratedBlind1) == false) bCalibratedBlind1 = false;
-    BLINDS_Start(uiLevelBlind1, bCalibratedBlind1, &xBlind1);
-    if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == true) BLINDS_SetMode(&xBlind1, (BLIND_MODES)uiData8);
-    if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == true) BLINDS_SetRiseTime(&xBlind1, uiRiseBlind1); else uiRiseBlind1 = BLINDS_GetRiseTime(&xBlind1);
-    if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == true) BLINDS_SetFallTime(&xBlind1, uiFallBlind1); else uiFallBlind1 = BLINDS_GetFallTime(&xBlind1);
-
+    if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == false) uiRiseBlind1 = DEFAULT_RISE_TIME;
+    if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == false) uiFallBlind1 = DEFAULT_FALL_TIME;
+    if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == false) uiData8 = (uint8_t)DEFAULT_BLIND_MODE;
+    BLINDS_Start(uiLevelBlind1, (BLIND_MODES)uiData8, uiRiseBlind1, uiFallBlind1, bCalibratedBlind1, &xBlind1);
+    
     ESP_LOGI(TAG_LOAD, "BLIND Initial level %d", uiLevelBlind1);
     ESP_LOGI(TAG_LOAD, "BLIND initial calibration status %d", (int)bCalibratedBlind1);
     ESP_LOGI(TAG_LOAD, "BLIND Initial mode %d", uiData8);
