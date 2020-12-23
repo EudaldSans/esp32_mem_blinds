@@ -37,6 +37,8 @@ void FEEDBACK_OfflineSignal(void);
 void FEEDBACK_InclusionSignal(void);
 void FEEDBACK_CalibratingSignal(void);
 void FEEDBACK_ErrorSignal(void);
+void FEEDBACK_MotionSignal(uint16_t uiTimeMs);
+void FEEDBACK_StopSignal(void);
 
 void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal);
 FEEDBACK_IDLE_SIGNALS FEEDBACK_GetIdleSignal(void);

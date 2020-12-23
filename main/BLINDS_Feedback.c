@@ -50,6 +50,7 @@ static xLED_t xLedUp;
 static xLED_t xLedDown;
 FEEDBACK_IDLE_SIGNALS xIdleSignal;
 POLLTIMER xTimerSignal;
+bool bMotionSignal = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
@@ -62,16 +63,29 @@ void _feedback_signal_Task(void * xParams)
     {
         MTX_Lock(&xFeedbackMtx);
         if (TMR_GetPollTimeRunning(&xTimerSignal) == true) {       // Wait here while timer is running
+            if (bMotionSignal == true) {
+                if (LOAD_IsOpening() == true) {
+                    LED_Off(&xLedDown, false);
+                    LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+                } else if (LOAD_IsClosing() == true) {
+                    LED_Off(&xLedUp, false);
+                    LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+                } else {
+                    bMotionSignal = false;
+                    LED_On(&xLedDown, SIGNAL_BLIND_STOP_LEVEL/100, false); LED_On(&xLedUp, SIGNAL_BLIND_STOP_LEVEL/100, false);
+                    TMR_SetPollTimer(&xTimerSignal, SIGNAL_BLIND_STOP_DURATION*TIMER_MSEG);
+                }
+            }
             TMR_GetPollTimeElapsed(&xTimerSignal);
         } else if (LOAD_IsCalibrating() == true) {
             LED_Blink(&xLedUp, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
             LED_Blink(&xLedDown, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
-        } else if (LOAD_IsGoingUp() == true) {
-            LED_Off(&xLedDown, false);
-            LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
-        } else if (LOAD_IsGoingDown() == true) {
-            LED_Off(&xLedUp, false);
-            LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+        // } else if (LOAD_IsOpening() == true) {
+        //     LED_Off(&xLedDown, false);
+        //     LED_Blink(&xLedUp, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
+        // } else if (LOAD_IsClosing() == true) {
+        //     LED_Off(&xLedUp, false);
+        //     LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
         } else if (MEM_GetStatus() == MEM_STATUS_HIDE) {
             LED_Off(&xLedUp, false);
             LED_Blink(&xLedDown, SIGNAL_OFFLINE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_OFFLINE_ON, SIGNAL_OFFLINE_OFF, false);
@@ -79,7 +93,7 @@ void _feedback_signal_Task(void * xParams)
             LED_Off(&xLedUp, false);
             LED_Blink(&xLedDown, SIGNAL_NEED_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_NEED_CALIBRATE_ON, SIGNAL_NEED_CALIBRATE_OFF, false);
         } else if (xIdleSignal == FEEDBACK_IDLE_ON) {
-            LED_On(&xLedUp, 20, false); LED_On(&xLedDown, 20, false);
+            LED_On(&xLedUp, 0.2, false); LED_On(&xLedDown, 0.2, false);
         } else if (xIdleSignal == FEEDBACK_IDLE_OFF) {
             LED_Off(&xLedUp, false); LED_Off(&xLedDown, false);
         } else {
@@ -96,6 +110,7 @@ bool FEEDBACK_Init(int iCore)
 {
     // ESP_LOGI(TAG_FEEDBACK, "Starting feedback task");
     MTX_Config(&xFeedbackMtx, MTX_DEF);
+    bMotionSignal = false;
     NVS_Init();
     if (NVS_ReadInt8(NVM_LED_IDLE_SIGNAL, (uint8_t*)&xIdleSignal) == false) xIdleSignal = DEFAULT_IDLE_SIGNAL;
     if (LED_ConfigSTD(&xLedUp, PIN_LED_UP, true, FADETIME_LEDS) == false) return false;
@@ -109,7 +124,8 @@ void FEEDBACK_CustomSignal(float fLum, uint16_t uiTimeOn, uint16_t uiTimeOff, ui
     if (!uiTimeMs) return;              // If the time to maintain the signal is '0' don't apply the change
 
     MTX_Lock(&xFeedbackMtx);
-    fLum = (fLum <= 0) ? 0 : (fLum > 1) ? 1 : fLum/100;
+    bMotionSignal = false;
+    fLum = (fLum <= 0) ? 0 : (fLum > 100) ? 1 : fLum/100;
     LED_Off(&xLedUp, false);
     if (!fLum) {
         LED_Off(&xLedDown, false);
@@ -118,7 +134,7 @@ void FEEDBACK_CustomSignal(float fLum, uint16_t uiTimeOn, uint16_t uiTimeOff, ui
     } else { 
         LED_On(&xLedDown, fLum, false);
     }
-        
+
     TMR_SetPollTimer(&xTimerSignal, uiTimeMs*TIMER_MSEG);
     MTX_Unlock(&xFeedbackMtx);
 }
@@ -136,6 +152,7 @@ void FEEDBACK_InclusionSignal(void)
 void FEEDBACK_CalibratingSignal(void)
 {
     MTX_Lock(&xFeedbackMtx);
+    bMotionSignal = false;
     LED_Blink(&xLedUp, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
     LED_Blink(&xLedDown, SIGNAL_CALIBRATE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_CALIBRATE_ON, SIGNAL_CALIBRATE_OFF, false);
     TMR_SetPollTimer(&xTimerSignal, SIGNAL_CALIBRATE_DURATION*TIMER_MSEG);
@@ -144,7 +161,24 @@ void FEEDBACK_CalibratingSignal(void)
 
 void FEEDBACK_ErrorSignal(void)
 {
-    
+    FEEDBACK_CustomSignal(SIGNAL_ERROR_LEVEL, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, SIGNAL_ERROR_DURATION);
+}
+
+void FEEDBACK_MotionSignal(uint16_t uiTimeMs)
+{
+    MTX_Lock(&xFeedbackMtx);
+    bMotionSignal = true;
+    TMR_SetPollTimer(&xTimerSignal, ((uint64_t)uiTimeMs)*TIMER_SEG);
+    MTX_Unlock(&xFeedbackMtx);
+}
+
+void FEEDBACK_StopSignal(void)
+{
+    MTX_Lock(&xFeedbackMtx);
+    bMotionSignal = false;
+    LED_On(&xLedDown, SIGNAL_BLIND_STOP_LEVEL/100, false); LED_On(&xLedUp, SIGNAL_BLIND_STOP_LEVEL/100, false);
+    TMR_SetPollTimer(&xTimerSignal, SIGNAL_BLIND_STOP_DURATION*TIMER_MSEG);
+    MTX_Unlock(&xFeedbackMtx);
 }
 
 void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal)

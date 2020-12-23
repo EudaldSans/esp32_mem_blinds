@@ -434,7 +434,7 @@ cJSON * xJsonData;
 cJSON * xJsonObj;
 cJSON * xJsonResp = cJSON_CreateObject();
 
-char * state_string = NULL;
+char * state_string = _state_to_string(factorytest_getState());
 TEST_STEPS state;
 
     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer

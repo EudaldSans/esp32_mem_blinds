@@ -45,11 +45,11 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
 {
     switch (xVar)
     {
-        case PROTOCOL_VARIABLE_STATUS:              if (uiChild == 1) {
-                                                        ESP_LOGI(TAG_DEVICE, "SET STATUS");
-                                                        if (dValue) LOAD_Open(); else LOAD_Close();
-                                                    }
-                                                    break;
+        // case PROTOCOL_VARIABLE_STATUS:              if (uiChild == 1) {
+        //                                                 ESP_LOGI(TAG_DEVICE, "SET STATUS");
+        //                                                 if (dValue) LOAD_Open(); else LOAD_Close();
+        //                                             }
+        //                                             break;
 
         case PROTOCOL_VARIABLE_LEVEL:               if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "SET LEVEL");
@@ -141,13 +141,13 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
         
         case PROTOCOL_VARIABLE_WINDOW_UP:           if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET WINDOW UP");
-                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsGoingUp());
+                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsOpening());
                                                     }
                                                     break;
 
         case PROTOCOL_VARIABLE_WINDOW_DOWN:         if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET WINDOW DOWN");
-                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsGoingDown());
+                                                        MEM_SendInfo(1, xVar, (double)LOAD_IsClosing());
                                                     }
                                                     break;
 
