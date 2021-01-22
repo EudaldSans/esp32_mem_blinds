@@ -1,6 +1,10 @@
 #ifndef TEST_METER_H
 #define TEST_METER_H
 
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 #define GPIO_INA_V              25
 #define INA_VOLTAGE             1650
 
