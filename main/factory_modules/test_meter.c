@@ -8,30 +8,27 @@
 
 /* INCLUDES */
 /* -------- */
+#include "test_meter.h"
+
 #include <stdio.h>
 #include <stdint.h>
 
-
 #include "esp_log.h"
-
-#include "ges_dac.h"
 #include "ges_nvs.h"
 #include "ges_HLW8012.h"
-
-#include "test_meter.h"
-
-#define MIN_POWER_TO_REPORT     2   // In Watts
-#define MAX_HW_CURRENT          10  // In Amperes
-#define DEFAULT_MAX_POWER       0   // In Watts ('0' Disable)
 
 /* TYPES */
 /* ----- */
 
 /* DEFINES */
 /* ------- */
-#define TAG_TEST_METER                   "[TEST_METER]"
-#define CALIBRATION_SAMPLES 10
-#define HLW8012_VOLTAGE_TEST_PERIOD  (60 * 1000 * 1000)
+#define TAG_TEST_METER                  "[TEST_METER]"
+#define CALIBRATION_SAMPLES             10
+#define HLW8012_VOLTAGE_TEST_PERIOD     (60 * 1000 * 1000)
+
+#define MIN_POWER_TO_REPORT             2   // In Watts
+#define MAX_HW_CURRENT                  10  // In Amperes
+#define DEFAULT_MAX_POWER               0   // In Watts ('0' Disable)
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
@@ -56,7 +53,6 @@ static float fCalibrationCurrent = 0.0;
 bool MeterTest_Init(uint8_t uiCore)
 {
     // Config power measures
-    DAC_Config(GPIO_INA_V);	DAC_Write(GPIO_INA_V, INA_VOLTAGE);     // INA voltage
     HLW8012_Config(HLW8012_SEL, BL0937, HLW8012_CF, HLW8012_CF1, HLW8012_VOLTAGE_PERIOD);
     return true;
 }
