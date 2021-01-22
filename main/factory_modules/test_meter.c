@@ -10,9 +10,6 @@
 /* -------- */
 #include "test_meter.h"
 
-#include <stdio.h>
-#include <stdint.h>
-
 #include "esp_log.h"
 #include "ges_nvs.h"
 #include "ges_HLW8012.h"
