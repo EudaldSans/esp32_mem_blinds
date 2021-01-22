@@ -34,6 +34,7 @@
 /* ------------------ */
 void _blinds_Task(void * xParams);
 bool _check_end_of_career(void);
+bool _save_level_blinds(uint8_t uiLevel);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -55,6 +56,7 @@ uint64_t uiRiseBlind1;
 uint64_t uiFallBlind1;
 bool bCalibratedBlind1;
 bool bNotifyEndCalib1 = false;
+uint8_t uiLastNotificatedLevel;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
@@ -82,6 +84,21 @@ static uint8_t uiCareerCycles = 0;
     return false;
 }
 
+bool _save_level_blinds(uint8_t uiLevel)
+{
+    if (uiLevelBlind1 != uiLevel) {
+        if (NVS_WriteInt8(NVM_KEY_LEVEL, uiLevel) == true) {
+            uiLevelBlind1 = uiLevel;
+            ESP_LOGI(TAG_LOAD, "New blind level %d", uiLevelBlind1);
+        } else {
+            ESP_LOGE(TAG_LOAD, "Fail saving new level");
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void _blinds_Task(void * xParams)
 {
 bool bTempUp, bTempDown;
@@ -93,21 +110,16 @@ uint8_t uiTempLevel;
         BLINDS_Engine(&xBlind1);
 
         xTempStatus = BLINDS_GetStatus(&xBlind1, &bTempUp, &bTempDown, &uiTempLevel);
-        if (bStatusUp != bTempUp) { ESP_LOGI(TAG_LOAD, "Rele UP %d", bTempUp); bStatusUp = bTempUp; if (bStatusUp) RELAY_On(&xReleUp, true); else RELAY_Off(&xReleUp, true); }
-        if (bStatusDown != bTempDown) { ESP_LOGI(TAG_LOAD, "Rele DOWN %d", bTempDown); bStatusDown = bTempDown; if (bStatusDown) RELAY_On(&xReleDown, true); else RELAY_Off(&xReleDown, true); }
+        if (bStatusUp != bTempUp) { ESP_LOGI(TAG_LOAD, "Rele UP %d", bTempUp); bStatusUp = bTempUp; if (bStatusUp) RELAY_On(&xReleUp, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleUp, true); } }
+        if (bStatusDown != bTempDown) { ESP_LOGI(TAG_LOAD, "Rele DOWN %d", bTempDown); bStatusDown = bTempDown; if (bStatusDown) RELAY_On(&xReleDown, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleDown, true); } }
         if (_check_end_of_career() == true) BLINDS_EndOfCareer(&xBlind1);
         
         // Saving changes
         if (xTempStatus == BLIND_STOPPED) {
-            if (uiLevelBlind1 != uiTempLevel) { 
-                if (NVS_WriteInt8(NVM_KEY_LEVEL, uiTempLevel) == true) {
-                    uiLevelBlind1 = uiTempLevel;
-                    MEM_SendInfo(1, PROTOCOL_VARIABLE_LEVEL, (double)uiLevelBlind1);
-                    ESP_LOGI(TAG_LOAD, "New blind level %d", uiLevelBlind1);
-                } else {
-                    ESP_LOGE(TAG_LOAD, "Fail saving new level");
-                }
-                // TMR_SetPollTimer(&xTimerNotify, TIME_NOTIFY_STATUS);
+            _save_level_blinds(uiTempLevel);
+            if (uiLevelBlind1 != uiLastNotificatedLevel) { 
+                uiLastNotificatedLevel = uiLevelBlind1;
+                MEM_SendInfo(1, PROTOCOL_VARIABLE_LEVEL, (double)uiLevelBlind1);
             }
 
             if (bNotifyEndCalib1 == true) {
@@ -143,13 +155,14 @@ uint8_t uiData8;
     if (RELAY_Config(PIN_RELAY_DOWN, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleDown) == false) ESP_LOGE(TAG_LOAD, "Relay down unconfigured");
     if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
 
-    if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0;
+    if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0; 
     if (NVS_ReadBoolean(NVM_KEY_CALIB, &bCalibratedBlind1) == false) bCalibratedBlind1 = false;
     if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == false) uiRiseBlind1 = DEFAULT_RISE_TIME;
     if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == false) uiFallBlind1 = DEFAULT_FALL_TIME;
     if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == false) uiData8 = (uint8_t)DEFAULT_BLIND_MODE;
     BLINDS_Start(uiLevelBlind1, (BLIND_MODES)uiData8, uiRiseBlind1, uiFallBlind1, bCalibratedBlind1, &xBlind1);
     
+    uiLastNotificatedLevel = uiLevelBlind1;
     ESP_LOGI(TAG_LOAD, "BLIND Initial level %d", uiLevelBlind1);
     ESP_LOGI(TAG_LOAD, "BLIND initial calibration status %d", (int)bCalibratedBlind1);
     ESP_LOGI(TAG_LOAD, "BLIND Initial mode %d", uiData8);
