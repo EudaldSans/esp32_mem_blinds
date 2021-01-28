@@ -19,6 +19,12 @@
 
 /* TYPES */
 /* ----- */
+typedef enum {
+    BLIND_MOTION_STOP = 0,
+    BLIND_MOTION_UP,
+    BLIND_MOTION_DOWN,
+    BLIND_MOTION_NUM_SENSES
+} BLIND_MOTION_SENSES;
 
 /* DEFINES */
 /* ------- */
@@ -35,6 +41,7 @@
 void _blinds_Task(void * xParams);
 bool _check_end_of_career(void);
 bool _save_level_blinds(uint8_t uiLevel);
+void _motion_sense(BLIND_MOTION_SENSES xSense);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -99,6 +106,26 @@ bool _save_level_blinds(uint8_t uiLevel)
     return true;
 }
 
+void _motion_sense(BLIND_MOTION_SENSES xSense)
+{
+    switch (xSense)
+    {
+        case BLIND_MOTION_UP:       ESP_LOGI(TAG_LOAD, "Motion blinds UP");
+                                    GPIO_SetOutput(PIN_TRIAC_ON, false); TMR_delay(50*TIMER_MSEG);
+                                    GPIO_SetOutput(PIN_RELAY_UPDOWN, true);
+                                    break;
+
+        case BLIND_MOTION_DOWN:     ESP_LOGI(TAG_LOAD, "Motion blinds DOWN");
+                                    GPIO_SetOutput(PIN_TRIAC_ON, false); TMR_delay(50*TIMER_MSEG);
+                                    GPIO_SetOutput(PIN_RELAY_UPDOWN, false);
+                                    break;
+
+        default:                    ESP_LOGI(TAG_LOAD, "Motion blinds STOP");
+                                    GPIO_SetOutput(PIN_TRIAC_ON, true); 
+                                    break;
+    }
+}
+
 void _blinds_Task(void * xParams)
 {
 bool bTempUp, bTempDown;
@@ -110,8 +137,13 @@ uint8_t uiTempLevel;
         BLINDS_Engine(&xBlind1);
 
         xTempStatus = BLINDS_GetStatus(&xBlind1, &bTempUp, &bTempDown, &uiTempLevel);
-        if (bStatusUp != bTempUp) { ESP_LOGI(TAG_LOAD, "Rele UP %d", bTempUp); bStatusUp = bTempUp; if (bStatusUp) RELAY_On(&xReleUp, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleUp, true); } }
-        if (bStatusDown != bTempDown) { ESP_LOGI(TAG_LOAD, "Rele DOWN %d", bTempDown); bStatusDown = bTempDown; if (bStatusDown) RELAY_On(&xReleDown, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleDown, true); } }
+        if ((bStatusUp != bTempUp) || (bStatusDown != bTempDown)) {
+            bStatusUp = bTempUp; bStatusDown = bTempDown;
+            _save_level_blinds(uiTempLevel);
+            _motion_sense((bStatusUp) ? BLIND_MOTION_UP : (bStatusDown) ? BLIND_MOTION_DOWN : BLIND_MOTION_STOP);
+        }
+        // if (bStatusUp != bTempUp) { ESP_LOGI(TAG_LOAD, "Rele UP %d", bTempUp); bStatusUp = bTempUp; if (bStatusUp) RELAY_On(&xReleUp, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleUp, true); } }
+        // if (bStatusDown != bTempDown) { ESP_LOGI(TAG_LOAD, "Rele DOWN %d", bTempDown); bStatusDown = bTempDown; if (bStatusDown) RELAY_On(&xReleDown, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleDown, true); } }
         if (_check_end_of_career() == true) BLINDS_EndOfCareer(&xBlind1);
         
         // Saving changes
@@ -151,8 +183,9 @@ uint8_t uiData8;
     ESP_LOGI(TAG_LOAD, "Initializing relay...");
     NVS_Init();
     
+    GPIO_ConfigOutput(PIN_TRIAC_ON, true);
     GPIO_ConfigOutput(PIN_RELAY_UPDOWN, false);
-    GPIO_ConfigOutput(PIN_TRIAC_ON, false);
+    
     // if (RELAY_Config(PIN_RELAY_UP, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleUp) == false) ESP_LOGE(TAG_LOAD, "Relay up unconfigured");
     // if (RELAY_Config(PIN_RELAY_DOWN, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleDown) == false) ESP_LOGE(TAG_LOAD, "Relay down unconfigured");
     if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
