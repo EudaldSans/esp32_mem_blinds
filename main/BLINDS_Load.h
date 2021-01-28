@@ -14,8 +14,8 @@
 
 /* DEFINES */
 /* ------- */
-#define PIN_RELAY_UP                2
-#define PIN_RELAY_DOWN              4
+#define PIN_TRIAC_ON                2
+#define PIN_RELAY_UPDOWN            4
 
 #define PIN_VREF                    25
 #define PIN_CF                      26
