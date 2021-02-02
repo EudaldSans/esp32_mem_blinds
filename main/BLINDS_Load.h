@@ -22,7 +22,7 @@
 #define PIN_CF1                     34
 #define PIN_SEL                     27
 
-// #define PIN_SINCRO                  35
+#define PIN_SINCRO                  35
 // #define PIN_SRS                     32
 // #define VREF_LEVEL                  1650
 #define VOLTAGE_PERIOD              (60 * 1000 * 1000)
