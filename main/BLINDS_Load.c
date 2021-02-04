@@ -40,7 +40,8 @@ typedef enum {
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
 void _blinds_Task(void * xParams);
-void _turn_on_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs);
+void _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs);
+void _turn_on_triac(void);
 bool _check_end_of_career(void);
 bool _save_level_blinds(uint8_t uiLevel);
 void _motion_sense(BLIND_MOTION_SENSES xSense);
@@ -56,7 +57,6 @@ void _motion_sense(BLIND_MOTION_SENSES xSense);
 // xRELAY_t xReleUp;
 // xRELAY_t xReleDown;
 BLINDS_CLASS xBlind1;
-bool bTriacTaskOn = false;
 xSIGNAL_t xSignalTriac;
 // POLLTIMER xTimerNotify;
 
@@ -74,13 +74,18 @@ uint8_t uiLastNotificatedLevel;
 
 /* CODE */
 /* ---- */
-void IRAM_ATTR _turn_on_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs)
+void IRAM_ATTR _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs)
 {
-    if ((bValid == true) && (bTriacTaskOn == true)) { 
-        bTriacTaskOn = false;
+    if (bValid == true) { 
         GPIO_SetOutput(PIN_TRIAC_ON, true);
     }
-    SIGNAL_SetVoltageCallback(SIGNAL_GetByPin(PIN_SINCRO), SIGNAL_CALLBACK_HIGH_PRIORITY_5, SIGNALCallbackOnZeroCrossing, _turn_on_triac, NULL);
+}
+
+void _turn_on_triac(void)
+{
+    if (GPIO_GetOutput(PIN_TRIAC_ON) == true) return;
+    SIGNAL_SetVoltageCallback(SIGNAL_GetByPin(PIN_SINCRO), SIGNAL_CALLBACK_HIGH_PRIORITY_5, SIGNALCallbackOnZeroCrossing, _isr_triac, NULL); TMR_delay(50*TIMER_MSEG); 
+    if (GPIO_GetOutput(PIN_TRIAC_ON) == false) { ESP_LOGW(TAG_LOAD, "Triac turn on without sincro"); GPIO_SetOutput(PIN_TRIAC_ON, true); }
 }
 
 bool _check_end_of_career(void)
@@ -125,22 +130,18 @@ void _motion_sense(BLIND_MOTION_SENSES xSense)
     {
         case BLIND_MOTION_UP:       ESP_LOGI(TAG_LOAD, "Motion blinds UP");
                                     GPIO_SetOutput(PIN_RELAY_UPDOWN, true); TMR_delay(50*TIMER_MSEG);
-                                    bTriacTaskOn = true; TMR_delay(50*TIMER_MSEG); 
-                                    if (GPIO_GetOutput(PIN_TRIAC_ON) == false) { ESP_LOGW(TAG_LOAD, "Triac turn on without sincro"); bTriacTaskOn = false; GPIO_SetOutput(PIN_TRIAC_ON, true); }
+                                    _turn_on_triac();
                                     break;
 
         case BLIND_MOTION_DOWN:     ESP_LOGI(TAG_LOAD, "Motion blinds DOWN");
                                     GPIO_SetOutput(PIN_RELAY_UPDOWN, false); TMR_delay(50*TIMER_MSEG);
-                                    bTriacTaskOn = true; TMR_delay(50*TIMER_MSEG); 
-                                    if (GPIO_GetOutput(PIN_TRIAC_ON) == false) { ESP_LOGW(TAG_LOAD, "Triac turn on without sincro"); bTriacTaskOn = false; GPIO_SetOutput(PIN_TRIAC_ON, true); }
+                                    _turn_on_triac();
                                     break;
 
         default:                    ESP_LOGI(TAG_LOAD, "Motion blinds STOP");
-                                    GPIO_SetOutput(PIN_TRIAC_ON, false); //TMR_delay(50*TIMER_MSEG);
+                                    GPIO_SetOutput(PIN_TRIAC_ON, false); TMR_delay(50*TIMER_MSEG);
                                     break;
     }
-
-    // ESP_LOGI(TAG_LOAD, "TRIAC(%d) status %d, RELE(%d) status %d", PIN_TRIAC_ON, GPIO_GetOutput(PIN_TRIAC_ON), PIN_RELAY_UPDOWN, GPIO_GetOutput(PIN_RELAY_UPDOWN));
 }
 
 void _blinds_Task(void * xParams)
@@ -203,10 +204,7 @@ uint8_t uiData8;
     GPIO_ConfigOutput(PIN_TRIAC_ON, false);
     GPIO_ConfigOutput(PIN_RELAY_UPDOWN, false);
 
-    bTriacTaskOn = false;
     if (SIGNAL_GetByPin(PIN_SINCRO) == NULL) { if (SIGNAL_VoltageConfig(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, iCore, &xSignalTriac) == false) return false; }                                                                                                         
-    SIGNAL_SetVoltageCallback(SIGNAL_GetByPin(PIN_SINCRO), SIGNAL_CALLBACK_HIGH_PRIORITY_5, SIGNALCallbackOnZeroCrossing, _turn_on_triac, NULL);
-    
     // if (RELAY_Config(PIN_RELAY_UP, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleUp) == false) ESP_LOGE(TAG_LOAD, "Relay up unconfigured");
     // if (RELAY_Config(PIN_RELAY_DOWN, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleDown) == false) ESP_LOGE(TAG_LOAD, "Relay down unconfigured");
     if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
