@@ -20,6 +20,7 @@
 #include "ges_http_server.h"
 #include "ges_nvs.h"
 #include "ges_timer.h"
+#include "ges_adc.h"
 
 #include "factory_testing.h"
 #include "test_button.h"
@@ -90,6 +91,7 @@ void uiatoa(uint8_t* a, size_t len_a, char* s, size_t len_s);
 /* INTERNAL VARIABLES */
 /* ------------------ */
 static uint16_t resets = 0;
+bool bSoftReset = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
@@ -190,9 +192,13 @@ SERVER_OBJ xWebUi;
         _factorytest_webStart(&xWebUi);
         vTaskDelay(100);
     }
-    while(true)
+    
+    while(true) 
+    {
+        if (bSoftReset) { ADC_WaitAndLockAllDMA(); esp_restart(); }
         vTaskDelay(100);
-    //wait for requests, we should not get here
+        //wait for requests, we should not get here
+    }
 }
 
 void __URI_root(httpd_req_t * xReq) 
@@ -759,7 +765,8 @@ cJSON * xPayload = cJSON_CreateObject();
     HTTP_ResponseSend(xReq, cJSON_Print(xPayload), HTTP_CONTENT_JSON);
     cJSON_Delete(xPayload);
     TMR_delay(100e3);
-    esp_restart();
+    bSoftReset = true;
+    // esp_restart();
 }
 
 void TEST_WifiInit(void)
