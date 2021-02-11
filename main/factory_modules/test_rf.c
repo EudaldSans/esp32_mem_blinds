@@ -33,6 +33,7 @@ void _rf_test_task(void * xParams);
 /* INTERNAL VARIABLES */
 /* ------------------ */
 TaskHandle_t xRfTaskHandle = NULL;
+bool bTakeSample = false;
 bool bRfRunning = false;
 uint16_t uiNumRfTestRequest;
 uint16_t uiNumRfTestRate;
@@ -43,9 +44,9 @@ uint16_t * ptrRfMeasures;
 /* ---- */
 void IRAM_ATTR _rf_test_isr(void)
 {
-    if (xRfTaskHandle != NULL) {
+    if ((bTakeSample == true) && (xRfTaskHandle != NULL)) {
         if (ADC_StartDMA(1) == true) {
-            vTaskNotifyGiveFromISR(xRfTaskHandle, NULL);
+            if (xRfTaskHandle != NULL) vTaskNotifyGiveFromISR(xRfTaskHandle, NULL);
             xRfTaskHandle = NULL;
         }
     } 
@@ -62,14 +63,24 @@ uint16_t uiMax = 0;
 
     ESP_LOGI(TAG_TEST_RF, "RF task started %d %d", uiNumRfTestRequest, uiNumRfTestRate);
     uiNumRfIsrDetected = 0;
+    bTakeSample = false;
     while(uiNumRfTestRequest>0) {
         TMR_delay(uiNumRfTestRate*TIMER_MSEG);
         ESP_LOGI(TAG_TEST_RF, "Wait interrupt");
+        bTakeSample = true;
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
+        ADC_FreeBufferDMA(1); 
         xRfTaskHandle = xTaskGetCurrentTaskHandle();
         IPERF_Start(1, 0);
         uiNumRfTestRequest--;
-        uiNotifyValue = ulTaskNotifyTake(pdFALSE, pdMS_TO_TICKS(uiNumRfTestRate));
-        if (uiNotifyValue == 0) { ADC_FreeBufferDMA(1); ESP_LOGW(TAG_TEST_RF, "Missed rf interrupt"); continue; }
+        uiNotifyValue = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
+        bTakeSample = false;
+        if (uiNotifyValue == 0) { 
+            ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
+            ADC_FreeBufferDMA(1); 
+            ESP_LOGW(TAG_TEST_RF, "Missed rf interrupt"); 
+            continue; 
+        }
 
         uiSizeBuff = ADC_GetBufferDMA(1, &uiBuffer); 
         ADC_FreeBufferDMA(1);
@@ -84,7 +95,10 @@ uint16_t uiMax = 0;
         ESP_LOGI(TAG_TEST_RF, "New rf measure added %d", uiMax);
     }
     ESP_LOGI(TAG_TEST_RF, "Ended rf task with %d measures", uiNumRfIsrDetected);
-    bRfRunning = false;
+    bRfRunning = false; bTakeSample = false;
+    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10));
+    xRfTaskHandle = false;
+    ADC_FreeBufferDMA(1);
     vTaskDelete(NULL);
 }
 
