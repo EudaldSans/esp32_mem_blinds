@@ -14,8 +14,8 @@
 
 /* DEFINES */
 /* ------- */
-#define PIN_RELAY_UP                2
-#define PIN_RELAY_DOWN              4
+#define PIN_TRIAC_ON                2
+#define PIN_RELAY_UPDOWN            4
 
 #define PIN_VREF                    25
 #define PIN_CF                      26
@@ -23,8 +23,8 @@
 #define PIN_SEL                     27
 
 #define PIN_SINCRO                  35
-#define PIN_SRS                     32
-#define VREF_LEVEL                  1650
+// #define PIN_SRS                     32
+// #define VREF_LEVEL                  1650
 #define VOLTAGE_PERIOD              (60 * 1000 * 1000)
 
 #define MIN_POWER_LOAD              10  // In watts

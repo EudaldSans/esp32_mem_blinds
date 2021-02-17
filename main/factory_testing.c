@@ -24,7 +24,7 @@
 
 #include "factory_testing.h"
 #include "test_button.h"
-#include "test_relay.h"
+// #include "test_relay.h"
 #include "test_meter.h"
 #include "test_leds.h"
 #include "test_sync.h"
@@ -67,8 +67,8 @@ void __URI_get_info(httpd_req_t * xReq);
 void __URI_post_info(httpd_req_t * xReq);
 void __URI_get_buttons(httpd_req_t * xReq);
 void __URI_post_buttons(httpd_req_t * xReq);
-void __URI_get_relays(httpd_req_t * xReq);
-void __URI_post_relays(httpd_req_t * xReq);
+// void __URI_get_relays(httpd_req_t * xReq);
+// void __URI_post_relays(httpd_req_t * xReq);
 void __URI_get_meter(httpd_req_t * xReq);
 void __URI_post_meter(httpd_req_t * xReq);
 void __URI_get_ac(httpd_req_t * xReq);
@@ -111,8 +111,8 @@ bool _factorytest_webStart(SERVER_OBJ* xWebUi)
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/info", __URI_post_info);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/buttons", __URI_get_buttons);
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/buttons", __URI_post_buttons);
-        HTTP_RegisterUri(xWebUi, HTTP_GET, "/relays", __URI_get_relays);
-        HTTP_RegisterUri(xWebUi, HTTP_POST, "/relays", __URI_post_relays);
+        // HTTP_RegisterUri(xWebUi, HTTP_GET, "/relays", __URI_get_relays);
+        // HTTP_RegisterUri(xWebUi, HTTP_POST, "/relays", __URI_post_relays);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/meter", __URI_get_meter);
         HTTP_RegisterUri(xWebUi, HTTP_GET, "/ac", __URI_get_ac);
         HTTP_RegisterUri(xWebUi, HTTP_POST, "/meter", __URI_post_meter);
@@ -238,89 +238,89 @@ cJSON * payload = cJSON_CreateObject();
     cJSON_Delete(payload);
 }
 
-void __URI_get_relays(httpd_req_t * xReq)
-{
-cJSON * payload = cJSON_CreateObject();
-cJSON * obj;
-char * payload_str;
-char key[10];
+// void __URI_get_relays(httpd_req_t * xReq)
+// {
+// cJSON * payload = cJSON_CreateObject();
+// cJSON * obj;
+// char * payload_str;
+// char key[10];
 
-    for(int i=0; i<RelayTest_GetTotalRelays(); i++)
-    {
-        snprintf(key, sizeof(key), "%d", i);
-        cJSON_AddItemToObject(payload, key, obj = cJSON_CreateObject());
-        cJSON_AddBoolToObject(obj, "status", (bool)RelayTest_GetStatus(i));
-        cJSON_AddNumberToObject(obj, "calibrationsDone", RelayTest_GetCalibrations(i));
-        cJSON_AddNumberToObject(obj, "operateTime", RelayTest_GetOperateTime(i));
-        cJSON_AddNumberToObject(obj, "releaseTime", RelayTest_GetReleaseTime(i));
-    }
+//     for(int i=0; i<RelayTest_GetTotalRelays(); i++)
+//     {
+//         snprintf(key, sizeof(key), "%d", i);
+//         cJSON_AddItemToObject(payload, key, obj = cJSON_CreateObject());
+//         cJSON_AddBoolToObject(obj, "status", (bool)RelayTest_GetStatus(i));
+//         cJSON_AddNumberToObject(obj, "calibrationsDone", RelayTest_GetCalibrations(i));
+//         cJSON_AddNumberToObject(obj, "operateTime", RelayTest_GetOperateTime(i));
+//         cJSON_AddNumberToObject(obj, "releaseTime", RelayTest_GetReleaseTime(i));
+//     }
 
-    payload_str = cJSON_Print(payload);
-    ESP_LOGI(TAG_FACTORY_TESTING, "GET /relays\n%s\n", payload_str);
-    HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
-    cJSON_Delete(payload);
-}
+//     payload_str = cJSON_Print(payload);
+//     ESP_LOGI(TAG_FACTORY_TESTING, "GET /relays\n%s\n", payload_str);
+//     HTTP_ResponseSend(xReq, payload_str, HTTP_CONTENT_JSON);
+//     cJSON_Delete(payload);
+// }
 
-void __URI_post_relays(httpd_req_t * xReq)
-{
-char cData[500];
-size_t bSize;
-int bLenGetData;
-bool result = true;
+// void __URI_post_relays(httpd_req_t * xReq)
+// {
+// char cData[500];
+// size_t bSize;
+// int bLenGetData;
+// bool result = true;
 
-cJSON * reqData;
-cJSON * payload = cJSON_CreateObject();
-cJSON * relay;
-cJSON * item;
+// cJSON * reqData;
+// cJSON * payload = cJSON_CreateObject();
+// cJSON * relay;
+// cJSON * item;
 
-int index;
+// int index;
 
-    bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
-    bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
-    ESP_LOGI(TAG_FACTORY_TESTING, "POST /relays\n%s", cData);
-    if (bLenGetData) {
-        reqData= cJSON_Parse(cData);
-        cJSON_ArrayForEach(relay, reqData) {
-            if(cJSON_IsObject(relay)) {
-                index = atoi(relay->string);
-                if(cJSON_HasObjectItem(relay, "status")) {
-                    item = cJSON_GetObjectItem(relay, "status");
-                    if(cJSON_IsBool(item)){
-                        if (RelayTest_SetStatus(index, cJSON_IsTrue(item)) == -1) result = false;
-                    }
-                }
-                if(cJSON_HasObjectItem(relay, "operateTime")) {
-                    item = cJSON_GetObjectItem(relay, "operateTime");
-                    if(cJSON_IsNumber(item)) {
-                        if (RelayTest_SetOperateTime(index, item->valueint) == -1) result = false;
-                    }
-                }
-                if(cJSON_HasObjectItem(relay, "releaseTime")) {
-                    item = cJSON_GetObjectItem(relay, "releaseTime");
-                    if(cJSON_IsNumber(item)) {
-                        if (RelayTest_SetReleaseTime(index, item->valueint) == -1) result = false;
-                    }
-                }
-                if(cJSON_HasObjectItem(relay, "runCalibration")) {
-                    item = cJSON_GetObjectItem(relay, "runCalibration");
-                    if(cJSON_IsTrue(item)){
-                        if (RelayTest_Calibrate(index) == -1) result = false;
-                    }
-                }
-                if(cJSON_HasObjectItem(relay, "runResistiveCalibration")) {
-                    item = cJSON_GetObjectItem(relay, "runResistiveCalibration");
-                    if(cJSON_IsTrue(item)){
-                        if (RelayTest_ResistorCalibrate(index) == -1) result = false;
-                    }
-                }
-            }
-        }
-    }
+//     bSize = MIN(xReq->content_len, sizeof(cData));              // Detect what is the MIN lenght betwwen data and buffer
+//     bLenGetData = httpd_req_recv(xReq, cData, bSize);           // Getting data info without exceeding the buffer
+//     ESP_LOGI(TAG_FACTORY_TESTING, "POST /relays\n%s", cData);
+//     if (bLenGetData) {
+//         reqData= cJSON_Parse(cData);
+//         cJSON_ArrayForEach(relay, reqData) {
+//             if(cJSON_IsObject(relay)) {
+//                 index = atoi(relay->string);
+//                 if(cJSON_HasObjectItem(relay, "status")) {
+//                     item = cJSON_GetObjectItem(relay, "status");
+//                     if(cJSON_IsBool(item)){
+//                         if (RelayTest_SetStatus(index, cJSON_IsTrue(item)) == -1) result = false;
+//                     }
+//                 }
+//                 if(cJSON_HasObjectItem(relay, "operateTime")) {
+//                     item = cJSON_GetObjectItem(relay, "operateTime");
+//                     if(cJSON_IsNumber(item)) {
+//                         if (RelayTest_SetOperateTime(index, item->valueint) == -1) result = false;
+//                     }
+//                 }
+//                 if(cJSON_HasObjectItem(relay, "releaseTime")) {
+//                     item = cJSON_GetObjectItem(relay, "releaseTime");
+//                     if(cJSON_IsNumber(item)) {
+//                         if (RelayTest_SetReleaseTime(index, item->valueint) == -1) result = false;
+//                     }
+//                 }
+//                 if(cJSON_HasObjectItem(relay, "runCalibration")) {
+//                     item = cJSON_GetObjectItem(relay, "runCalibration");
+//                     if(cJSON_IsTrue(item)){
+//                         if (RelayTest_Calibrate(index) == -1) result = false;
+//                     }
+//                 }
+//                 if(cJSON_HasObjectItem(relay, "runResistiveCalibration")) {
+//                     item = cJSON_GetObjectItem(relay, "runResistiveCalibration");
+//                     if(cJSON_IsTrue(item)){
+//                         if (RelayTest_ResistorCalibrate(index) == -1) result = false;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    cJSON_AddBoolToObject(payload, "result", result);
-    HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
-    cJSON_Delete(payload);
-}
+//     cJSON_AddBoolToObject(payload, "result", result);
+//     HTTP_ResponseSend(xReq, cJSON_Print(payload), HTTP_CONTENT_JSON);
+//     cJSON_Delete(payload);
+// }
 void __URI_get_meter(httpd_req_t * xReq)
 {
 cJSON* calibrationParams = cJSON_CreateObject();
@@ -799,7 +799,7 @@ bool TEST_FactoryTestStart(void)
 {
     TEST_WifiInit();
     ButtonTest_Init(1);
-    RelayTest_Init(1);
+    // RelayTest_Init(1);
     MeterTest_Init(1);
     LedsTest_Init(1);
     SyncTest_Init(1);
