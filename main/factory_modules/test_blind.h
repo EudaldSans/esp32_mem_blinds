@@ -1,5 +1,5 @@
-#ifndef TEST_SYNC_H
-#define TEST_SYNC_H
+#ifndef _TEST_BLIND
+#define _TEST_BLIND
 
 /* INCLUDES */
 /* -------- */
@@ -18,8 +18,10 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-bool SyncTest_Init(uint8_t uiCore);
-float SyncTest_GetPeriod();
-float SyncTest_GetTon();
+bool BlindTest_Init(uint8_t uiCore);
+void BlindTest_SetStatus(bool bStatus);
+bool BlindTest_GetStatus(void);
+void BlindTest_SetSense(bool bUp);
+bool BlindTest_GetSense(void);
 
 #endif
