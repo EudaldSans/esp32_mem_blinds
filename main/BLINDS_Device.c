@@ -111,6 +111,17 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
                                                         LOAD_SetFallTime(((uint64_t)dValue)*1000000);
                                                     }
                                                     break;
+        
+        case PROTOCOL_VARIABLE_RESET_CONF:          if (uiChild == 1) {
+                                                        ESP_LOGI(TAG_DEVICE, "RESET CONFIGURATION");
+                                                        BUTTON_SetLockButton(DEFAULT_LOCK_BUTTON);
+                                                        FEEDBACK_SetIdleSignal(DEFAULT_IDLE_SIGNAL);
+                                                        LOAD_SetMode(DEFAULT_BLIND_MODE);
+                                                        LOAD_SetRiseTime(DEFAULT_RISE_TIME);
+                                                        LOAD_SetFallTime(DEFAULT_FALL_TIME);
+                                                        LOAD_SetCalibrated(false);
+                                                    } 
+                                                    break;
 
         case PROTOCOL_VARIABLE_RESET_FACTORY:       ESP_LOGI(TAG_DEVICE, "SET RESET FACTORY");
                                                     BUTTON_SetLockButton(DEFAULT_LOCK_BUTTON);
