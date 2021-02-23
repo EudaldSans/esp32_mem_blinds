@@ -148,6 +148,7 @@ void _blinds_Task(void * xParams)
 {
 bool bTempUp, bTempDown;
 BLIND_STATES xTempStatus;
+static BLIND_STATES xLastStatus = BLIND_STOPPED;
 uint8_t uiTempLevel;
 
     while(1)
@@ -166,6 +167,12 @@ uint8_t uiTempLevel;
         
         // Saving changes
         if (xTempStatus == BLIND_STOPPED) {
+
+            if (xLastStatus != BLIND_STOPPED) {
+                MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_STOP, 1);
+                xLastStatus = BLIND_STOPPED;
+            }
+
             _save_level_blinds(uiTempLevel);
             if (uiLevelBlind1 != uiLastNotificatedLevel) { 
                 uiLastNotificatedLevel = uiLevelBlind1;
@@ -182,6 +189,12 @@ uint8_t uiTempLevel;
             LOAD_SetFallTime(BLINDS_GetFallTime(&xBlind1));
         } else if ((LOAD_IsCalibrating() == true) && (bNotifyEndCalib1 == false)) {
             MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 1); bNotifyEndCalib1 = true;
+        } else if ((xLastStatus != BLIND_OPENING) && (LOAD_IsOpening() == true)) {
+            MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_UP, 1);
+            xLastStatus = BLIND_OPENING;
+        } else if ((xLastStatus != BLIND_CLOSING) && (LOAD_IsClosing() == false)) {
+            MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_DOWN, 1);
+            xLastStatus = BLIND_CLOSING;
         }
         
         // if (TMR_GetPollTimeElapsed(&xTimerNotify) == true) {
