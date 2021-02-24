@@ -77,15 +77,15 @@ uint8_t uiLastNotificatedLevel;
 void IRAM_ATTR _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs)
 {
     if (bValid == true) { 
-        GPIO_SetOutput(PIN_TRIAC_ON, true);
+        GPIO_SetOutput(PIN_TRIAC_ON, false);
     }
 }
 
 void _turn_on_triac(void)
 {
-    if (GPIO_GetOutput(PIN_TRIAC_ON) == true) return;
+    if (GPIO_GetOutput(PIN_TRIAC_ON) == false) return;
     SIGNAL_SetVoltageCallback(SIGNAL_GetByPin(PIN_SINCRO), SIGNAL_CALLBACK_HIGH_PRIORITY_5, SIGNALCallbackOnZeroCrossing, _isr_triac, NULL); TMR_delay(50*TIMER_MSEG); 
-    if (GPIO_GetOutput(PIN_TRIAC_ON) == false) { ESP_LOGW(TAG_LOAD, "Triac turn on without sincro"); GPIO_SetOutput(PIN_TRIAC_ON, true); }
+    if (GPIO_GetOutput(PIN_TRIAC_ON) == true) { ESP_LOGW(TAG_LOAD, "Triac turn on without sincro"); GPIO_SetOutput(PIN_TRIAC_ON, false); }
 }
 
 bool _check_end_of_career(void)
@@ -139,7 +139,7 @@ void _motion_sense(BLIND_MOTION_SENSES xSense)
                                     break;
 
         default:                    ESP_LOGI(TAG_LOAD, "Motion blinds STOP");
-                                    GPIO_SetOutput(PIN_TRIAC_ON, false); TMR_delay(50*TIMER_MSEG);
+                                    GPIO_SetOutput(PIN_TRIAC_ON, true); TMR_delay(50*TIMER_MSEG);
                                     break;
     }
 }
@@ -148,6 +148,7 @@ void _blinds_Task(void * xParams)
 {
 bool bTempUp, bTempDown;
 BLIND_STATES xTempStatus;
+static BLIND_STATES xLastStatus = BLIND_STOPPED;
 uint8_t uiTempLevel;
 
     while(1)
@@ -166,6 +167,12 @@ uint8_t uiTempLevel;
         
         // Saving changes
         if (xTempStatus == BLIND_STOPPED) {
+
+            if (xLastStatus != BLIND_STOPPED) {
+                MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_STOP, 1);
+                xLastStatus = BLIND_STOPPED;
+            }
+
             _save_level_blinds(uiTempLevel);
             if (uiLevelBlind1 != uiLastNotificatedLevel) { 
                 uiLastNotificatedLevel = uiLevelBlind1;
@@ -182,6 +189,12 @@ uint8_t uiTempLevel;
             LOAD_SetFallTime(BLINDS_GetFallTime(&xBlind1));
         } else if ((LOAD_IsCalibrating() == true) && (bNotifyEndCalib1 == false)) {
             MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 1); bNotifyEndCalib1 = true;
+        } else if ((xLastStatus != BLIND_OPENING) && (LOAD_IsOpening() == true)) {
+            MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_UP, 1);
+            xLastStatus = BLIND_OPENING;
+        } else if ((xLastStatus != BLIND_CLOSING) && (LOAD_IsClosing() == false)) {
+            MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_DOWN, 1);
+            xLastStatus = BLIND_CLOSING;
         }
         
         // if (TMR_GetPollTimeElapsed(&xTimerNotify) == true) {
@@ -201,7 +214,7 @@ uint8_t uiData8;
     ESP_LOGI(TAG_LOAD, "Initializing relay...");
     NVS_Init();
     
-    GPIO_ConfigOutput(PIN_TRIAC_ON, false);
+    GPIO_ConfigOutput(PIN_TRIAC_ON, true);
     GPIO_ConfigOutput(PIN_RELAY_UPDOWN, false);
 
     if (SIGNAL_GetByPin(PIN_SINCRO) == NULL) { if (SIGNAL_VoltageConfig(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, iCore, &xSignalTriac) == false) return false; }                                                                                                         
