@@ -48,12 +48,12 @@ bool BlindTest_Init(uint8_t uiCore)
 void BlindTest_SetStatus(bool bStatus)      
 { 
     GPIO_SetOutput(PIN_TRIAC_ON, !bStatus); 
-    ESP_LOGI(TAG_TEST_BLIND, "Set new STATUS %d with SENSE %d", BlindTest_GetStatus(), BlindTest_GetSense());
+    ESP_LOGI(TAG_TEST_BLIND, "Set new STATUS %d with DIRECTION %d", BlindTest_GetStatus(), BlindTest_GetDirection());
 }
 
 bool BlindTest_GetStatus(void)              { return !GPIO_GetOutput(PIN_TRIAC_ON); }
 
-void BlindTest_SetSense(bool bUp)
+void BlindTest_SetDirection(bool bUp)
 {
 bool bLastStatus = BlindTest_GetStatus();
 
@@ -61,7 +61,7 @@ bool bLastStatus = BlindTest_GetStatus();
     GPIO_SetOutput(PIN_RELAY_UPDOWN, bUp);
     TMR_delay(50*TIMER_MSEG);
     if (bLastStatus) BlindTest_SetStatus(true);
-    ESP_LOGI(TAG_TEST_BLIND, "Set new SENSE %d with STATUS %d", BlindTest_GetSense(), BlindTest_GetStatus());
+    ESP_LOGI(TAG_TEST_BLIND, "Set new DIRECTION %d with STATUS %d", BlindTest_GetDirection(), BlindTest_GetStatus());
 }
 
-bool BlindTest_GetSense(void)               { return GPIO_GetOutput(PIN_RELAY_UPDOWN); }
+bool BlindTest_GetDirection(void)               { return GPIO_GetOutput(PIN_RELAY_UPDOWN); }

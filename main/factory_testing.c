@@ -250,7 +250,7 @@ char * payload_str;
     //     snprintf(key, sizeof(key), "%d", i);
     cJSON_AddItemToObject(payload, "0", obj = cJSON_CreateObject());
     cJSON_AddBoolToObject(obj, "status", BlindTest_GetStatus());
-    cJSON_AddNumberToObject(obj, "sense", (int)BlindTest_GetSense());
+    cJSON_AddNumberToObject(obj, "direction", (int)BlindTest_GetDirection());
     // }
 
     payload_str = cJSON_Print(payload);
@@ -287,9 +287,9 @@ int index;
                     item = cJSON_GetObjectItem(blind, "status");
                     if(cJSON_IsBool(item)) BlindTest_SetStatus(cJSON_IsTrue(item));
                 }
-                if(cJSON_HasObjectItem(blind, "sense")) {
-                    item = cJSON_GetObjectItem(blind, "sense");
-                    if(cJSON_IsNumber(item)) BlindTest_SetSense((bool)item->valueint);
+                if(cJSON_HasObjectItem(blind, "direction")) {
+                    item = cJSON_GetObjectItem(blind, "direction");
+                    if(cJSON_IsNumber(item)) BlindTest_SetDirection((bool)item->valueint);
                 }
             }
         }
