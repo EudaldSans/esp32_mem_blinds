@@ -21,7 +21,7 @@
 bool BlindTest_Init(uint8_t uiCore);
 void BlindTest_SetStatus(bool bStatus);
 bool BlindTest_GetStatus(void);
-void BlindTest_SetSense(bool bUp);
-bool BlindTest_GetSense(void);
+void BlindTest_SetDirection(bool bUp);
+bool BlindTest_GetDirection(void);
 
 #endif
