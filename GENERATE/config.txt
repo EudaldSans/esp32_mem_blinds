@@ -1,4 +1,4 @@
-version = 21000333_D_2.0.4
+version = 21000333_D_2.0.5
 
 # ESP32 files
 ESP32_boot = ESP32_boot.bin
