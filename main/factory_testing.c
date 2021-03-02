@@ -779,6 +779,7 @@ bool TEST_FactoryTestStart(void)
     TEST_WifiInit();
     ButtonTest_Init(1);
     // RelayTest_Init(1);
+    BlindTest_Init(1);
     MeterTest_Init(1);
     LedsTest_Init(1);
     SyncTest_Init(1);
