@@ -192,7 +192,7 @@ uint8_t uiTempLevel;
         } else if ((xLastStatus != BLIND_OPENING) && (LOAD_IsOpening() == true)) {
             MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_UP, 1);
             xLastStatus = BLIND_OPENING;
-        } else if ((xLastStatus != BLIND_CLOSING) && (LOAD_IsClosing() == false)) {
+        } else if ((xLastStatus != BLIND_CLOSING) && (LOAD_IsClosing() == true)) {
             MEM_SendInfo(1, PROTOCOL_VARIABLE_WINDOW_DOWN, 1);
             xLastStatus = BLIND_CLOSING;
         }
