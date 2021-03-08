@@ -126,6 +126,7 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
         case PROTOCOL_VARIABLE_RESET_FACTORY:       ESP_LOGI(TAG_DEVICE, "SET RESET FACTORY");
                                                     BUTTON_SetLockButton(DEFAULT_LOCK_BUTTON);
                                                     FEEDBACK_SetIdleSignal(DEFAULT_IDLE_SIGNAL);
+                                                    FEEDBACK_EnableHideSignal(DEFAULT_FEEDBACK_HIDE);
                                                     LOAD_SetMode(DEFAULT_BLIND_MODE);
                                                     LOAD_SetRiseTime(DEFAULT_RISE_TIME);
                                                     LOAD_SetFallTime(DEFAULT_FALL_TIME);
