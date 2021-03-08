@@ -24,6 +24,7 @@ typedef enum {
 
 #define FADETIME_LEDS               0     // Time in ms
 #define DEFAULT_IDLE_SIGNAL         FEEDBACK_IDLE_OFF
+#define DEFAULT_FEEDBACK_HIDE       true
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -42,5 +43,8 @@ void FEEDBACK_StopSignal(void);
 
 void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal);
 FEEDBACK_IDLE_SIGNALS FEEDBACK_GetIdleSignal(void);
+
+void FEEDBACK_EnableHideSignal(bool bEnable);
+bool FEEDBACK_HideSignalIsEnabled(void);
 
 #endif
