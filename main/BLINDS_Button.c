@@ -98,6 +98,13 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
                                 }
                                 break;
 
+        case PULSE_LONG50:      FEEDBACK_CustomSignal(SIGNAL_INCLUSION_LEVEL, SIGNAL_INCLUSION_ON, SIGNAL_INCLUSION_OFF, SIGNAL_INCLUSION_DURATION);
+                                if (bCompleted == true) {
+                                    ESP_LOGI(TAG_BUTTON, "TOGGLE SIGNAL NOT INCLUDED");
+                                    FEEDBACK_EnableHideSignal(!FEEDBACK_HideSignalIsEnabled());
+                                }
+                                break;
+
         default:                if (bLockButton == false) {
                                     FEEDBACK_CustomSignal(SIGNAL_INCLUSION_LEVEL, SIGNAL_INCLUSION_ON, SIGNAL_INCLUSION_OFF, SIGNAL_INCLUSION_DURATION);
                                     if (bCompleted) {
@@ -153,6 +160,13 @@ static void _button_down_callback(bool bCompleted, uint64_t uiTime)
                                 if (bCompleted) {
                                     ESP_LOGI(TAG_BUTTON_DOWN, "PULSE RESET DEFAULT");
                                     MEM_ResetToDefault();
+                                }
+                                break;
+
+        case PULSE_LONG50:      FEEDBACK_CustomSignal(SIGNAL_INCLUSION_LEVEL, SIGNAL_INCLUSION_ON, SIGNAL_INCLUSION_OFF, SIGNAL_INCLUSION_DURATION);
+                                if (bCompleted == true) {
+                                    ESP_LOGI(TAG_BUTTON, "TOGGLE SIGNAL NOT INCLUDED");
+                                    FEEDBACK_EnableHideSignal(!FEEDBACK_HideSignalIsEnabled());
                                 }
                                 break;
 
