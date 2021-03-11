@@ -29,6 +29,7 @@
 #define TAG_FEEDBACK                "[FEEDBACK]"
 
 #define NVM_LED_IDLE_SIGNAL         "idle_signal"
+#define NVM_KEY_HIDE_SIGNAL         "hide_signal"
 
 /* TYPES */
 /* ----- */
@@ -49,6 +50,7 @@ xMTX_t xFeedbackMtx = MTX_INIT_CONFIG_DEFAULT;
 static xLED_t xLedUp;
 static xLED_t xLedDown;
 FEEDBACK_IDLE_SIGNALS xIdleSignal;
+bool bEnableHideSignal = true;
 POLLTIMER xTimerSignal;
 bool bMotionSignal = false;
 
@@ -86,7 +88,7 @@ void _feedback_signal_Task(void * xParams)
         // } else if (LOAD_IsClosing() == true) {
         //     LED_Off(&xLedUp, false);
         //     LED_Blink(&xLedDown, SIGNAL_BLIND_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_BLIND_ON, SIGNAL_BLIND_OFF, false);
-        } else if (MEM_GetStatus() == MEM_STATUS_HIDE) {
+        } else if ((MEM_GetStatus() == MEM_STATUS_HIDE) && (bEnableHideSignal == true)) {
             LED_Off(&xLedUp, false);
             LED_Blink(&xLedDown, SIGNAL_OFFLINE_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_OFFLINE_ON, SIGNAL_OFFLINE_OFF, false);
         } else if (LOAD_IsCalibrated() == false) {
@@ -113,6 +115,7 @@ bool FEEDBACK_Init(int iCore)
     bMotionSignal = false;
     NVS_Init();
     if (NVS_ReadInt8(NVM_LED_IDLE_SIGNAL, (uint8_t*)&xIdleSignal) == false) xIdleSignal = DEFAULT_IDLE_SIGNAL;
+    if (NVS_ReadBoolean(NVM_KEY_HIDE_SIGNAL, &bEnableHideSignal) == false) bEnableHideSignal = DEFAULT_FEEDBACK_HIDE;
     if (LED_ConfigSTD(&xLedUp, PIN_LED_UP, true, FADETIME_LEDS) == false) return false;
     if (LED_ConfigSTD(&xLedDown, PIN_LED_DOWN, true, FADETIME_LEDS) == false) return false;
     return xTaskCreatePinnedToCore(_feedback_signal_Task, "feedback_task", 2048, NULL, 5, NULL, iCore);
@@ -190,3 +193,13 @@ void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal)
 }
 
 FEEDBACK_IDLE_SIGNALS FEEDBACK_GetIdleSignal(void)      { return xIdleSignal; }
+
+void FEEDBACK_EnableHideSignal(bool bEnable)
+{
+    if (bEnable != bEnableHideSignal) {
+        if (NVS_WriteBoolean(NVM_KEY_HIDE_SIGNAL, bEnable) == false) { ESP_LOGE(TAG_FEEDBACK, "Fail saving HIDE SIGNAL"); return; }
+        bEnableHideSignal = bEnable;
+    }
+}
+
+bool FEEDBACK_HideSignalIsEnabled(void)                       { return bEnableHideSignal; }
