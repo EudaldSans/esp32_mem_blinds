@@ -21,6 +21,7 @@
 
 #include "ges_nvs.h"
 #include "ges_debug.h"
+#include "ges_dropout.h"
 
 /* TYPES */
 /* ----- */
@@ -31,7 +32,8 @@
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-// void _dropout_callback(uint64_t uiElapsedTime);
+void _dropout_before_callback(void);
+void _dropout_callback(uint64_t uiElapsedTime);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -41,16 +43,32 @@
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
+xDROPOUT_t xLostVoltage;
+bool bTriacStatus = false;
+bool bRelayStatus = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
-// void _dropout_callback(uint64_t uiElapsedTime)
-// {
-//     ESP_LOGW(TAG_MAIN, "Dropout done...");
-// }
+void _dropout_before_callback(void)
+{
+    ESP_LOGW(TAG_MAIN, "Dropout detected...");
+    bTriacStatus = GPIO_GetOutput(PIN_TRIAC_ON);
+    bRelayStatus = GPIO_GetOutput(PIN_RELAY_UPDOWN);
+    GPIO_SetOutput(PIN_TRIAC_ON, true);
+    vTaskDelay(pdMS_TO_TICKS(10));
+    GPIO_SetOutput(PIN_RELAY_UPDOWN, false);
+}
+
+void _dropout_callback(uint64_t uiElapsedTime)
+{
+    ESP_LOGW(TAG_MAIN, "Dropout done...");
+    GPIO_SetOutput(PIN_RELAY_UPDOWN, bRelayStatus);
+    vTaskDelay(pdMS_TO_TICKS(10));
+    GPIO_SetOutput(PIN_TRIAC_ON, bTriacStatus);
+}
 
 void app_main(void)
 {
@@ -81,6 +99,7 @@ esp_chip_info_t chip_info;
         if (LOAD_Init(1) == false) ESP_LOGE(TAG_MAIN, "Error starting relays management");
         if (BUTTON_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting buttons management");
         if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
+        if (DROPOUT_Config(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE, 200, 0, _dropout_before_callback, _dropout_callback, &xLostVoltage) == false) ESP_LOGE(TAG_MAIN, "Error starting dropout protection");
     } else {
         if (TEST_FactoryTestStart() == false) ESP_LOGE(TAG_MAIN, "Error starting test task");
     }
