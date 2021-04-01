@@ -43,7 +43,6 @@ void _dropout_callback(uint64_t uiElapsedTime);
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-xDROPOUT_t xLostVoltage;
 bool bTriacStatus = false;
 bool bRelayStatus = false;
 
@@ -99,7 +98,7 @@ esp_chip_info_t chip_info;
         if (LOAD_Init(1) == false) ESP_LOGE(TAG_MAIN, "Error starting relays management");
         if (BUTTON_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting buttons management");
         if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
-        if (DROPOUT_Config(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE, 200, 0, _dropout_before_callback, _dropout_callback, &xLostVoltage) == false) ESP_LOGE(TAG_MAIN, "Error starting dropout protection");
+        if (DROPOUT_Config(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE, 200, 0, _dropout_before_callback, _dropout_callback) == false) ESP_LOGE(TAG_MAIN, "Error starting dropout protection");
     } else {
         if (TEST_FactoryTestStart() == false) ESP_LOGE(TAG_MAIN, "Error starting test task");
     }
