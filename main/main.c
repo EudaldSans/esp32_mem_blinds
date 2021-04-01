@@ -91,7 +91,7 @@ esp_chip_info_t chip_info;
     printf("********************************\n");
     fflush(stdout);
 
-    NVS_Init(); NVS_WriteStrToModule("OTA", "FW", "21000333_D_2.0.6");
+    NVS_Init(); NVS_WriteStrToModule("OTA", "FW", "21000333_D_2.0.7");
 
     if(TEST_IsFactoryTestPassed() == true) {
         if (MEM_StartComs(0, DEVICE_SetCmd, DEVICE_GetCmd, NULL, DEVICE_Reset) == false) ESP_LOGE(TAG_MAIN, "Error creating MEM Wireless coms\n");
