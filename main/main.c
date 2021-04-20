@@ -17,6 +17,7 @@
 #include "BLINDS_Button.h"
 #include "BLINDS_Feedback.h"
 #include "BLINDS_Load.h"
+#include "BLINDS_Meter.h"
 #include "factory_testing.h"
 
 #include "ges_nvs.h"
@@ -96,6 +97,7 @@ esp_chip_info_t chip_info;
     if(TEST_IsFactoryTestPassed() == true) {
         if (MEM_StartComs(0, DEVICE_SetCmd, DEVICE_GetCmd, NULL, DEVICE_Reset) == false) ESP_LOGE(TAG_MAIN, "Error creating MEM Wireless coms\n");
         if (LOAD_Init(1) == false) ESP_LOGE(TAG_MAIN, "Error starting relays management");
+        if (METER_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error initiating power measures & protecctions");
         if (BUTTON_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting buttons management");
         if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
         if (DROPOUT_Config(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE, 200, 0, _dropout_before_callback, _dropout_callback) == false) ESP_LOGE(TAG_MAIN, "Error starting dropout protection");
