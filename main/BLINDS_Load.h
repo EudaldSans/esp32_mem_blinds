@@ -60,7 +60,7 @@ bool LOAD_IsStopped(void);
 bool LOAD_SetMode(BLIND_MODES xMode);
 BLIND_MODES LOAD_GetMode(void);
 bool LOAD_SetCheckEnd(bool bEnable);
-bool LOAG_GetCheckEnd(void);
+bool LOAD_GetCheckEnd(void);
 
 bool LOAD_SetCalibrated(bool bCalibrated);
 bool LOAD_SetRiseTime(uint64_t uiMicroSeconds);

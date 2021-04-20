@@ -253,7 +253,7 @@ bool LOAD_Regulate(uint8_t uiPercentatge)               { BLINDS_Specific(&xBlin
 uint8_t LOAD_GetPercentatge(void)                       { return BLINDS_GetLevel(&xBlind1); }
 
 BLIND_MODES LOAD_GetMode(void)                          { return BLINDS_GetMode(&xBlind1); }
-bool LOAG_GetCheckEnd(void)                             { return bCheckEnd1; }
+bool LOAD_GetCheckEnd(void)                             { return bCheckEnd1; }
 
 uint64_t LOAD_GetRiseTime(void)                         { return BLINDS_GetRiseTime(&xBlind1); }
 uint64_t LOAD_GetFallTime(void)                         { return BLINDS_GetFallTime(&xBlind1); }
