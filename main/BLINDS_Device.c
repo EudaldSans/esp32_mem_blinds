@@ -87,6 +87,12 @@ void DEVICE_SetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar, double dValue)
                                                     }
                                                     break;
 
+        case PROTOCOL_VARIABLE_BLIND_END_CHECK:     if (uiChild == 1) {
+                                                        ESP_LOGI(TAG_DEVICE, "SET BLIND END DETECTION");
+                                                        LOAD_SetCheckEnd((bool)dValue);
+                                                    }
+                                                    break;
+
         case PROTOCOL_VARIABLE_STATUS_LOCK:         if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "SET STATUS LOCK");
                                                         BUTTON_SetLockButton((bool)dValue);
@@ -178,6 +184,12 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
         case PROTOCOL_VARIABLE_BLIND_MODE:          if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET BLIND MODE");
                                                         MEM_SendInfo(1, xVar, (double)((LOAD_GetMode() == BLIND_MODE_SUNBLIND) ? 1 : 0));
+                                                    }
+                                                    break;
+
+        case PROTOCOL_VARIABLE_BLIND_END_CHECK:     if (uiChild == 1) {
+                                                        ESP_LOGI(TAG_DEVICE, "GET BLIND END DETECTION");
+                                                        MEM_SendInfo(1, xVar, (double)LOAG_GetCheckEnd());
                                                     }
                                                     break;
 

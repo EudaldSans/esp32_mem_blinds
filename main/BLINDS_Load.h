@@ -32,6 +32,7 @@
 
 // #define TIME_NOTIFY_STATUS          (2*TIMER_SEG)
 #define DEFAULT_BLIND_MODE          BLIND_MODE_STDBLIND
+#define DEFAULT_CHECK_END           true
 #define DEFAULT_RISE_TIME           (60 * 1000 * 1000)
 #define DEFAULT_FALL_TIME           (60 * 1000 * 1000)
 
@@ -58,6 +59,8 @@ bool LOAD_IsStopped(void);
 
 bool LOAD_SetMode(BLIND_MODES xMode);
 BLIND_MODES LOAD_GetMode(void);
+bool LOAD_SetCheckEnd(bool bEnable);
+bool LOAG_GetCheckEnd(void);
 
 bool LOAD_SetCalibrated(bool bCalibrated);
 bool LOAD_SetRiseTime(uint64_t uiMicroSeconds);
