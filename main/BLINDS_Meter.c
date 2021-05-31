@@ -31,6 +31,8 @@
 #define NVM_MAX_POWER_KEY           "max_power"
 #define NVM_CTRL_POWER_KEY          "ctrl_power"
 
+#define MAX_POWER_CNT_LIMIT         4
+
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
 void _meter_protection_Task(void * xParams);
@@ -54,11 +56,15 @@ TimerHandle_t xTimerMeter;
 void _meter_protection_Task(void * xParams)
 {
 static uint8_t uiCntOverCurrent = 0;
+// static uint8_t uiCntOverCustom = 0;
 
     while (1)
     {
         // ESP_LOGI(TAG_METER, "Instant Power: %f Voltage: %f Current: %f", HLW8012_GetInstantPower(), HLW8012_GetInstantVoltage(), HLW8012_GetInstantCurrent()/1000);
         // ESP_LOGI(TAG_METER, "Mean Power: %f Voltage: %f Current: %f", METER_GetPower(), METER_GetVoltage(), METER_GetCurrent());
+        
+        
+        
         if (METER_GetCurrent() > (float)MAX_HW_CURRENT) { 
             ESP_LOGW(TAG_METER, "Max current detected"); 
             if (uiCntOverCurrent) {
@@ -74,6 +80,33 @@ static uint8_t uiCntOverCurrent = 0;
         } else {
             uiCntOverCurrent = 0;
         }
+
+        if (METER_GetCurrent() > (float)MAX_HW_CURRENT) { 
+            ESP_LOGW(TAG_METER, "Max current detected"); 
+            uiCntOverCurrent++;
+            if (uiCntOverCurrent == MAX_POWER_CNT_LIMIT) {
+                uiCntOverCurrent = 0;
+                bOverCurrentDetected = true; 
+                LOAD_Stop();
+            }          
+        // } else if ((bCtrlMaxPower) && (fMaxPower) && (METER_GetPower() > fMaxPower)) { 
+        //     ESP_LOGW(TAG_METER, "Max power detected");
+        //     uiCntOverCustom++;
+        //     if (uiCntOverCustom == MAX_POWER_CNT_LIMIT) {
+        //         uiCntOverCustom = 0;
+        //         bOverConsumptionDetected = true; 
+        //         LOAD_Stop();
+        //     }            
+        } else if (LOAD_IsStopped() == false){
+            // if (bOverConsumptionDetected == true) bOverConsumptionDetected = false;
+            if (bOverCurrentDetected == true) bOverCurrentDetected = false; 
+            uiCntOverCurrent = 0;
+            // uiCntOverCustom = 0;
+        // } else {
+        //     if (bCtrlMaxPower == false) bOverConsumptionDetected = false;
+        //     uiCntOverCurrent = uiCntOverCustom = 0;
+        }
+
         TMR_delay(1*TIMER_SEG);
     }
 }
