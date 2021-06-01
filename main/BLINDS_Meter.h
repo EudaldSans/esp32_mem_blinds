@@ -17,7 +17,7 @@
 #define HLW8012_VOLTAGE_PERIOD  (60 * 1000 * 1000)
 
 #define MIN_POWER_LOAD          10  // In watts
-#define MAX_HW_CURRENT          3.4 // In Amperes
+#define MAX_HW_CURRENT          3.5 // In Amperes
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
