@@ -15,8 +15,8 @@
 #include "MEM_Main.h"
 #include "ges_signal.h"
 #include "ges_relay.h"
-#include "ges_HLW8012.h"
 #include "ges_nvs.h"
+#include "BLINDS_Meter.h"
 
 /* TYPES */
 /* ----- */
@@ -99,7 +99,7 @@ static uint8_t uiEndCycles = 0;
         bDetectedEnd = false; uiEndCycles = 0;
     } else if ((bStatusUp == false) && (bStatusDown == false)) {
         bDetectedEnd = false; uiEndCycles = 0;
-    } else if (HLW8012_GetMeanPower() > MIN_POWER_LOAD) { 
+    } else if (METER_GetPower()) { 
         if (bDetectedEnd == false) ESP_LOGI(TAG_LOAD, "Start detecction moving");
         bDetectedEnd = true; uiEndCycles = CAREER_CYCLES;
     } else if (uiEndCycles) {
@@ -224,8 +224,7 @@ uint8_t uiData8;
     if (SIGNAL_GetByPin(PIN_SINCRO) == NULL) { if (SIGNAL_VoltageConfig(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, iCore, &xSignalTriac) == false) return false; }                                                                                                         
     // if (RELAY_Config(PIN_RELAY_UP, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleUp) == false) ESP_LOGE(TAG_LOAD, "Relay up unconfigured");
     // if (RELAY_Config(PIN_RELAY_DOWN, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleDown) == false) ESP_LOGE(TAG_LOAD, "Relay down unconfigured");
-    if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
-
+    
     if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0; 
     if (NVS_ReadBoolean(NVM_KEY_CALIB, &bCalibratedBlind1) == false) bCalibratedBlind1 = false;
     if (NVS_ReadBoolean(NVM_KEY_END, &bCheckEnd1) == false) bCheckEnd1 = DEFAULT_CHECK_END;
