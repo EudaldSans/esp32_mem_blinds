@@ -105,7 +105,7 @@ uint16_t uiMax = 0;
 bool RfTest_Init(int8_t iCore)
 {
     GPIO_ConfigInput(PIN_RF_TEST_INT, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_FALL, 0, _rf_test_isr);
-    if (ADC_ConfigDMA(1, PIN_RF_TEST_ADC, GPIO_NC, 0, 0, 50000, 1 * 1000) == false) { ESP_LOGW(TAG_TEST_RF, "Imposible config ADC for RF measures"); return false; }	
+    if (ADC_ConfigDMA(1, PIN_RF_TEST_ADC, GPIO_NC, 6, 0, 50000, 1 * 1000) == false) { ESP_LOGW(TAG_TEST_RF, "Imposible config ADC for RF measures"); return false; }	
     return true;
 }
 

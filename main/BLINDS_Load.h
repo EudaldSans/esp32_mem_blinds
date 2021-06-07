@@ -16,22 +16,17 @@
 /* ------- */
 #define PIN_TRIAC_ON                4
 #define PIN_RELAY_UPDOWN            2
-
-#define PIN_VREF                    25
-#define PIN_CF                      26
-#define PIN_CF1                     34
-#define PIN_SEL                     27
-
 #define PIN_SINCRO                  35
-// #define PIN_SRS                     32
-// #define VREF_LEVEL                  1650
-#define VOLTAGE_PERIOD              (60 * 1000 * 1000)
 
-#define MIN_POWER_LOAD              10  // In watts
+//#define PIN_VREF                    25
+//#define PIN_SRS                     32
+//#define VREF_LEVEL                  1650
+
 #define CAREER_CYCLES               5
 
 // #define TIME_NOTIFY_STATUS          (2*TIMER_SEG)
 #define DEFAULT_BLIND_MODE          BLIND_MODE_STDBLIND
+#define DEFAULT_CHECK_END           true
 #define DEFAULT_RISE_TIME           (60 * 1000 * 1000)
 #define DEFAULT_FALL_TIME           (60 * 1000 * 1000)
 
@@ -58,6 +53,8 @@ bool LOAD_IsStopped(void);
 
 bool LOAD_SetMode(BLIND_MODES xMode);
 BLIND_MODES LOAD_GetMode(void);
+bool LOAD_SetCheckEnd(bool bEnable);
+bool LOAD_GetCheckEnd(void);
 
 bool LOAD_SetCalibrated(bool bCalibrated);
 bool LOAD_SetRiseTime(uint64_t uiMicroSeconds);

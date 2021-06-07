@@ -15,8 +15,8 @@
 #include "MEM_Main.h"
 #include "ges_signal.h"
 #include "ges_relay.h"
-#include "ges_HLW8012.h"
 #include "ges_nvs.h"
+#include "BLINDS_Meter.h"
 
 /* TYPES */
 /* ----- */
@@ -36,13 +36,14 @@ typedef enum {
 #define NVM_KEY_FALL                "fall_1"
 #define NVM_KEY_LEVEL               "level_1"
 #define NVM_KEY_CALIB               "calib_1"
+#define NVM_KEY_END                 "checkend_1"
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
 void _blinds_Task(void * xParams);
 void _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs);
 void _turn_on_triac(void);
-bool _check_end_of_career(void);
+bool _check_end(void);
 bool _save_level_blinds(uint8_t uiLevel);
 void _motion_sense(BLIND_MOTION_SENSES xSense);
 
@@ -62,6 +63,7 @@ xSIGNAL_t xSignalTriac;
 
 bool bStatusUp = false;
 bool bStatusDown = false;
+bool bCheckEnd1 = DEFAULT_CHECK_END;
 uint8_t uiLevelBlind1;
 uint64_t uiRiseBlind1;
 uint64_t uiFallBlind1;
@@ -88,21 +90,23 @@ void _turn_on_triac(void)
     if (GPIO_GetOutput(PIN_TRIAC_ON) == true) { ESP_LOGW(TAG_LOAD, "Triac turn on without sincro"); GPIO_SetOutput(PIN_TRIAC_ON, false); }
 }
 
-bool _check_end_of_career(void)
+bool _check_end(void)
 {
-static bool bDetectedCareer = false;
-static uint8_t uiCareerCycles = 0;
+static bool bDetectedEnd = false;
+static uint8_t uiEndCycles = 0;
 
-    if ((bStatusUp == false) && (bStatusDown == false)) {
-        bDetectedCareer = false; uiCareerCycles = 0;
-    } else if (HLW8012_GetMeanPower() > MIN_POWER_LOAD) { 
-        if (bDetectedCareer == false) ESP_LOGI(TAG_LOAD, "Start detecction moving");
-        bDetectedCareer = true; uiCareerCycles = CAREER_CYCLES;
-    } else if (uiCareerCycles) {
-        uiCareerCycles -= 1;
-    } else if (bDetectedCareer == true) {
+    if (bCheckEnd1 == false) {
+        bDetectedEnd = false; uiEndCycles = 0;
+    } else if ((bStatusUp == false) && (bStatusDown == false)) {
+        bDetectedEnd = false; uiEndCycles = 0;
+    } else if (METER_GetPower()) { 
+        if (bDetectedEnd == false) ESP_LOGI(TAG_LOAD, "Start detecction moving");
+        bDetectedEnd = true; uiEndCycles = CAREER_CYCLES;
+    } else if (uiEndCycles) {
+        uiEndCycles -= 1;
+    } else if (bDetectedEnd == true) {
         ESP_LOGI(TAG_LOAD, "Detected end of career");
-        bDetectedCareer = false;
+        bDetectedEnd = false;
         return true;
     }
 
@@ -163,7 +167,7 @@ uint8_t uiTempLevel;
         }
         // if (bStatusUp != bTempUp) { ESP_LOGI(TAG_LOAD, "Rele UP %d", bTempUp); bStatusUp = bTempUp; if (bStatusUp) RELAY_On(&xReleUp, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleUp, true); } }
         // if (bStatusDown != bTempDown) { ESP_LOGI(TAG_LOAD, "Rele DOWN %d", bTempDown); bStatusDown = bTempDown; if (bStatusDown) RELAY_On(&xReleDown, true); else { _save_level_blinds(uiTempLevel); RELAY_Off(&xReleDown, true); } }
-        if (_check_end_of_career() == true) BLINDS_EndOfCareer(&xBlind1);
+        if (_check_end() == true) BLINDS_End(&xBlind1);
         
         // Saving changes
         if (xTempStatus == BLIND_STOPPED) {
@@ -220,10 +224,10 @@ uint8_t uiData8;
     if (SIGNAL_GetByPin(PIN_SINCRO) == NULL) { if (SIGNAL_VoltageConfig(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, iCore, &xSignalTriac) == false) return false; }                                                                                                         
     // if (RELAY_Config(PIN_RELAY_UP, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleUp) == false) ESP_LOGE(TAG_LOAD, "Relay up unconfigured");
     // if (RELAY_Config(PIN_RELAY_DOWN, true, PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK, PIN_SRS, PIN_VREF, VREF_LEVEL, NULL, &xReleDown) == false) ESP_LOGE(TAG_LOAD, "Relay down unconfigured");
-    if (HLW8012_Config(PIN_SEL, BL0937, PIN_CF, PIN_CF1, VOLTAGE_PERIOD) == false) ESP_LOGE(TAG_LOAD, "HLW8012 unconfigured");
-
+    
     if (NVS_ReadInt8(NVM_KEY_LEVEL, &uiLevelBlind1) == false) uiLevelBlind1 = 0; 
     if (NVS_ReadBoolean(NVM_KEY_CALIB, &bCalibratedBlind1) == false) bCalibratedBlind1 = false;
+    if (NVS_ReadBoolean(NVM_KEY_END, &bCheckEnd1) == false) bCheckEnd1 = DEFAULT_CHECK_END;
     if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == false) uiRiseBlind1 = DEFAULT_RISE_TIME;
     if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == false) uiFallBlind1 = DEFAULT_FALL_TIME;
     if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == false) uiData8 = (uint8_t)DEFAULT_BLIND_MODE;
@@ -248,6 +252,7 @@ bool LOAD_Regulate(uint8_t uiPercentatge)               { BLINDS_Specific(&xBlin
 uint8_t LOAD_GetPercentatge(void)                       { return BLINDS_GetLevel(&xBlind1); }
 
 BLIND_MODES LOAD_GetMode(void)                          { return BLINDS_GetMode(&xBlind1); }
+bool LOAD_GetCheckEnd(void)                             { return bCheckEnd1; }
 
 uint64_t LOAD_GetRiseTime(void)                         { return BLINDS_GetRiseTime(&xBlind1); }
 uint64_t LOAD_GetFallTime(void)                         { return BLINDS_GetFallTime(&xBlind1); }
@@ -323,6 +328,16 @@ bool LOAD_SetFallTime(uint64_t uiMicroSeconds)
             LOAD_SetCalibrated(true);
             MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 0);
         }
+    }
+    return true;
+}
+
+bool LOAD_SetCheckEnd(bool bEnable)
+{
+    if (bCheckEnd1 != bEnable) {
+        if (NVS_WriteBoolean(NVM_KEY_END, bEnable) == false) { ESP_LOGE(TAG_LOAD, "Fail saving end detection"); return false; }
+        bCheckEnd1 = bEnable; 
+        ESP_LOGI(TAG_LOAD, "CHECK END %d", bCheckEnd1);
     }
     return true;
 }
