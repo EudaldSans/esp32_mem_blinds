@@ -60,6 +60,13 @@ uint16_t uiSizeBuff = 0;
 uint16_t * uiBuffer = 0;
 uint16_t uiIdxBuffer;
 uint16_t uiMax = 0; 
+    
+    if (ADC_ConfigDMA(1, PIN_RF_TEST_ADC, GPIO_NC, 6, 0, 50000, 1 * 1000) == false) { 
+        ESP_LOGW(TAG_TEST_RF, "Imposible config ADC for RF measures"); 
+        vTaskDelete(NULL);
+        return; 
+    }
+    GPIO_ConfigInput(PIN_RF_TEST_INT, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_FALL, 0, _rf_test_isr);	
 
     ESP_LOGI(TAG_TEST_RF, "RF task started %d %d", uiNumRfTestRequest, uiNumRfTestRate);
     uiNumRfIsrDetected = 0;
@@ -99,14 +106,9 @@ uint16_t uiMax = 0;
     ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10));
     xRfTaskHandle = false;
     ADC_FreeBufferDMA(1);
-    vTaskDelete(NULL);
-}
 
-bool RfTest_Init(int8_t iCore)
-{
-    GPIO_ConfigInput(PIN_RF_TEST_INT, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_FALL, 0, _rf_test_isr);
-    if (ADC_ConfigDMA(1, PIN_RF_TEST_ADC, GPIO_NC, 6, 0, 50000, 1 * 1000) == false) { ESP_LOGW(TAG_TEST_RF, "Imposible config ADC for RF measures"); return false; }	
-    return true;
+    GPIO_ChangeInputInterrupt(PIN_RF_TEST_INT, GPIO_INPUT_INTERRUPT_OFF, NULL);
+    vTaskDelete(NULL);
 }
 
 bool RfTest_start(uint16_t uiNumTests, uint16_t uiRateMiliseconds)

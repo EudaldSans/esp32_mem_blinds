@@ -21,7 +21,6 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-bool RfTest_Init(int8_t iCore);
 bool RfTest_start(uint16_t uiNumTests, uint16_t uiRateMiliseconds);
 
 bool RfTest_IsRunning(void);
