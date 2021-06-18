@@ -56,8 +56,11 @@ bool bLockButton = DEFAULT_LOCK_BUTTON;
 /* ---- */
 static void _button_up_callback(bool bCompleted, uint64_t uiTime) 
 {
-    switch (GPULSE_TimeToPulseType(uiTime)) {
-        case PULSE_NULL:        ESP_LOGW(TAG_BUTTON, "PULSE NULL");
+    ESP_LOGI(TAG_BUTTON_UP, "Detectected %d %lld", (int)bCompleted, uiTime);
+
+    switch (GPULSE_TimeToPulseType(uiTime)) 
+    {
+        case PULSE_NULL:        if (bCompleted) ESP_LOGW(TAG_BUTTON_UP, "PULSE NULL");
                                 break;
 
         case PULSE_SHORT:       if (bLockButton == false) {
@@ -121,8 +124,11 @@ static void _button_up_callback(bool bCompleted, uint64_t uiTime)
 
 static void _button_down_callback(bool bCompleted, uint64_t uiTime) 
 {
-    switch (GPULSE_TimeToPulseType(uiTime)) {
-        case PULSE_NULL:        ESP_LOGW(TAG_BUTTON_DOWN, "PULSE NULL");
+    ESP_LOGI(TAG_BUTTON_DOWN, "Detectected %d %lld", (int)bCompleted, uiTime);
+
+    switch (GPULSE_TimeToPulseType(uiTime)) 
+    {
+        case PULSE_NULL:        if (bCompleted) ESP_LOGW(TAG_BUTTON_DOWN, "PULSE NULL");
                                 break;
 
         case PULSE_SHORT:       if (bLockButton == false) {
