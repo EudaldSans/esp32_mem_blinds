@@ -783,7 +783,6 @@ bool TEST_FactoryTestStart(void)
     MeterTest_Init(1);
     LedsTest_Init(1);
     SyncTest_Init(1);
-    RfTest_Init(0);
     return (xTaskCreatePinnedToCore(_factorytest_taskLoop, "FACTORY_TESTING", CONFIG_STACK_FACTORY_TESTING, NULL, 5, NULL, tskNO_AFFINITY) == pdPASS);
 }
 
