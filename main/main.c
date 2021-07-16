@@ -68,6 +68,7 @@ void _dropout_callback(uint64_t uiElapsedTime)
     GPIO_SetOutput(PIN_RELAY_UPDOWN, bRelayStatus);
     vTaskDelay(pdMS_TO_TICKS(10));
     GPIO_SetOutput(PIN_TRIAC_ON, bTriacStatus);
+    MEM_Reconnect();
 }
 
 void app_main(void)
