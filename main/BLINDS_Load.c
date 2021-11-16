@@ -184,8 +184,14 @@ uint8_t uiTempLevel;
             }
 
             if (bNotifyEndCalib1 == true) {
-                if (LOAD_IsCalibrated() == true) { MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 0); LOAD_SetCalibrated(true); } 
-                else { MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 2); }
+                if (LOAD_IsCalibrated() == true) { 
+                    MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 0); 
+                    LOAD_SetCalibrated(true); 
+                    MEM_SendInfo(1, PROTOCOL_VARIABLE_BLINDS_RISE_TIME, LOAD_GetRiseTime()/1000000);
+                    MEM_SendInfo(1, PROTOCOL_VARIABLE_BLINDS_FALL_TIME, LOAD_GetFallTime()/1000000);
+                } else { 
+                    MEM_SendInfo(1, PROTOCOL_VARIABLE_CALIBRATION, 2); 
+                }
                 bNotifyEndCalib1 = false;
             }
 
