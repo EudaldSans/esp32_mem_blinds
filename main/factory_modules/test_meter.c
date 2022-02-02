@@ -47,7 +47,7 @@ static float fCalibrationCurrent = 0.0;
 /* CODE */
 /* ---- */
 
-bool MeterTest_Init(uint8_t uiCore)
+bool MeterTest_Init(int iCore)
 {
     // Config power measures
     HLW8012_Config(HLW8012_SEL, BL0937, HLW8012_CF, HLW8012_CF1, HLW8012_VOLTAGE_PERIOD);
@@ -99,7 +99,6 @@ int MeterTest_GetCalibrations(void){
     return uiCalibrationsDone;
 }
 
-#if defined(CONFIG_BOARD_MEM_BLINDS)
 float MeterTest_GetPower(void)                  { return HLW8012_GetMeanPower(); }
 float MeterTest_GetKp(void)                     { return HLW8012_GetKp(); }
 bool MeterTest_SetKp(float fVal)                { return HLW8012_SetKp(fVal); }
@@ -115,16 +114,3 @@ bool _calibrate(void){
     HLW8012_Calibrate(CALIBRATION_SAMPLES, fCalibrationPower, fCalibrationVoltage, fCalibrationCurrent);
     return true; 
 }
-
-#elif defined(CONFIG_BOARD_LOLIN)
-float MeterTest_GetPower(void)                  { return 55.0; }
-float MeterTest_GetKp(void)                     { return kp; }
-bool MeterTest_SetKp(float fVal)                { kp = fVal; return true; }
-float MeterTest_GetCurrent(void)                { return 0.25; }
-float MeterTest_GetKi(void)                     { return ki; }
-bool MeterTest_SetKi(float fVal)                { ki = fVal; return true; }
-float MeterTest_GetVoltage(void)                { return 220.0; }
-float MeterTest_GetKv(void)                     { return kv; }
-bool MeterTest_SetKv(float fVal)                { kv = fVal; return true; }
-bool _calibrate(void)                  { ESP_LOGI(TAG_TEST_METER, "MeterTest.calibrate(%f, %f, %f)", fCalibrationPower, fCalibrationVoltage, fCalibrationCurrent); return true; }
-#endif

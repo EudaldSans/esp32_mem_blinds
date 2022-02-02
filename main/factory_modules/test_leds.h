@@ -23,7 +23,7 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-bool LedsTest_Init(uint8_t uiCore);
+bool LedsTest_Init(int iCore);
 int LedsTest_GetMax(int iLed);
 bool LedsTest_SetMax(int iLed, int iMaxVal);
 int LedsTest_GetVal(int iLed);

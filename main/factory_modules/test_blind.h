@@ -18,7 +18,7 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-bool BlindTest_Init(uint8_t uiCore);
+bool BlindTest_Init(int iCore);
 void BlindTest_SetStatus(bool bStatus);
 bool BlindTest_GetStatus(void);
 void BlindTest_SetDirection(bool bUp);

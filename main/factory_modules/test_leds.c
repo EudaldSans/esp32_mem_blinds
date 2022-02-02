@@ -23,11 +23,8 @@
 /* DEFINES */
 /* ------- */
 #define TAG_TEST_LEDS               "[LEDS_TEST]"
-#ifdef CONFIG_BOARD_MEM_BLINDS
-    #define N_LEDS                      2
-#else
-    #define N_LEDS                      0 
-#endif
+
+#define N_LEDS                      2
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
@@ -35,15 +32,13 @@ static xLED_t xLeds[N_LEDS];
 
 /* CODE */
 /* ---- */
-bool LedsTest_Init(uint8_t uiCore)
+bool LedsTest_Init(int iCore)
 {
-    #if defined(CONFIG_BOARD_MEM_BLINDS)
-        LED_ConfigSTD(&xLeds[0], PIN_LED_UP, true, FADETIME_LEDS);
-        LED_ConfigSTD(&xLeds[1], PIN_LED_DOWN, true, FADETIME_LEDS);
-        for(int i=0; i<N_LEDS; i++){
-        LED_Blink(&xLeds[i],SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
-        }
-    #endif
+    LED_ConfigSTD(&xLeds[0], PIN_LED_UP, true, FADETIME_LEDS);
+    LED_ConfigSTD(&xLeds[1], PIN_LED_DOWN, true, FADETIME_LEDS);
+    for(int i=0; i<N_LEDS; i++){
+    LED_Blink(&xLeds[i],SIGNAL_ERROR_LEVEL/100, LED_BLINK_ALWAYS, SIGNAL_ERROR_ON, SIGNAL_ERROR_OFF, false);
+    }
     return true;	
 }
 

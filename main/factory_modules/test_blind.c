@@ -37,7 +37,7 @@
 
 /* CODE */
 /* ---- */
-bool BlindTest_Init(uint8_t uiCore)
+bool BlindTest_Init(int iCore)
 {
     ESP_LOGI(TAG_TEST_BLIND, "Initializing Blind...");
     GPIO_ConfigOutput(PIN_TRIAC_ON, true);

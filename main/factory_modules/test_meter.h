@@ -13,7 +13,7 @@
 #define HLW8012_CF1             34
 #define HLW8012_VOLTAGE_PERIOD  (60 * 1000 * 1000)
 
-bool MeterTest_Init(uint8_t uiCore);
+bool MeterTest_Init(int iCore);
 float MeterTest_GetPower(void);
 float MeterTest_GetKp(void);
 bool MeterTest_SetKp(float fVal);
