@@ -19,11 +19,8 @@
 /* ------- */
 #define TAG_BUTTON                  "[TEST BUTTON]"
 #define TAG_AUX                     "[AUX IN]"
-#if defined(CONFIG_BOARD_MEM_BLINDS) || defined(CONFIG_BOARD_LOLIN)
-    #define N_BUTTONS 2
-#else
-    #define N_BUTTONS 0
-#endif
+
+#define N_BUTTONS 2
 
 
 /* TYPES */
@@ -67,7 +64,7 @@ void _test_button_callback(size_t i, bool bCompleted, uint64_t uiTime){
     if(bCompleted && (GPULSE_TimeToPulseType(uiTime)) &&  WIFI_IsConnected(&mode_managed) == false && mode_ap == false){
         start_ap_mode();
     }
-#if defined(CONFIG_BOARD_MEM_BLINDS) || defined(CONFIG_BOARD_LOLIN)
+
     if (bCompleted == false) return;
     switch (GPULSE_TimeToPulseType(uiTime)) {
         case PULSE_NULL:        ESP_LOGW(TAG_BUTTON, "Button %d : Pulse NULL", i);
@@ -83,10 +80,9 @@ void _test_button_callback(size_t i, bool bCompleted, uint64_t uiTime){
                                     pulsations[i].iTimestamp = esp_timer_get_time();
 			                    break;
     } 	
-#endif
+
 }
 
-#ifdef CONFIG_BOARD_MEM_BLINDS
 static void _factory_button_up_callback(bool bCompleted, uint64_t uiTime) 
 {
     _test_button_callback(0, bCompleted, uiTime);
@@ -97,16 +93,11 @@ static void _factory_button_down_callback(bool bCompleted, uint64_t uiTime)
     _test_button_callback(1, bCompleted, uiTime);
 }
 
-#endif
-
-bool ButtonTest_Init(uint8_t uiCore)
+bool ButtonTest_Init(int iCore)
 {
-    // GPULSE_ConfigPulseButton(PIN_INPUT_AUXILIAR, false, 50, 60, GPIO_INPUT_PULLUP, uiCore, _auxiliar_input_callback, &xInputAux);
-    #if defined(CONFIG_BOARD_MEM_BLINDS)
-        ESP_LOGI(TAG_BUTTON, "Initializing test_button module");
-        GPULSE_ConfigPushButton(PIN_INPUT_UP,  false, GPIO_INPUT_PULLUP, uiCore, _factory_button_up_callback, &xButtons[0]);
-        GPULSE_ConfigPushButton(PIN_INPUT_DOWN,  false, GPIO_INPUT_PULLUP, uiCore, _factory_button_down_callback, &xButtons[1]);
-    #endif
+    ESP_LOGI(TAG_BUTTON, "Initializing test_button module");
+    GPULSE_ConfigPushButton(PIN_INPUT_UP,  false, GPIO_INPUT_PULLUP, iCore, _factory_button_up_callback, &xButtons[0]);
+    GPULSE_ConfigPushButton(PIN_INPUT_DOWN,  false, GPIO_INPUT_PULLUP, iCore, _factory_button_down_callback, &xButtons[1]);
     ButtonTest_Reset();
     return true;	
 }

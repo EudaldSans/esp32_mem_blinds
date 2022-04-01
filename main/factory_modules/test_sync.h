@@ -18,7 +18,7 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-bool SyncTest_Init(uint8_t uiCore);
+bool SyncTest_Init(int iCore);
 float SyncTest_GetPeriod();
 float SyncTest_GetTon();
 

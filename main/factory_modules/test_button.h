@@ -29,7 +29,7 @@
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-bool ButtonTest_Init(uint8_t uiCore);
+bool ButtonTest_Init(int iCore);
 void ButtonTest_Reset(void);
 int ButtonTest_GetTotalButtons(void);
 int ButtonTest_GetShortPulsations(int button);

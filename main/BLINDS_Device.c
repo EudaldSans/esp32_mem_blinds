@@ -16,6 +16,7 @@
 #include "BLINDS_Load.h"
 #include "BLINDS_Button.h"
 #include "BLINDS_Feedback.h"
+#include "BLINDS_Meter.h"
 
 /* TYPES */
 /* ----- */
@@ -156,6 +157,24 @@ void DEVICE_GetCmd(uint8_t uiChild, PROTOCOL_VARIABLES xVar)
         case PROTOCOL_VARIABLE_LEVEL:               if (uiChild == 1) {
                                                         ESP_LOGI(TAG_DEVICE, "GET LEVEL");
                                                         MEM_SendInfo(1, xVar, (double)LOAD_GetPercentatge());
+                                                    }
+                                                    break;
+
+        case PROTOCOL_VARIABLE_VOLTAGE:             if (uiChild == 1) {
+                                                        ESP_LOGI(TAG_DEVICE, "GET VOLTAGE");
+                                                        MEM_SendInfo(1, xVar, (double)METER_GetVoltage());
+                                                    }
+                                                    break;
+
+        case PROTOCOL_VARIABLE_CURRENT:             if (uiChild == 1) {
+                                                        ESP_LOGI(TAG_DEVICE, "GET CURRENT");
+                                                        MEM_SendInfo(1, xVar, (double)METER_GetCurrent());
+                                                    }
+                                                    break;
+
+        case PROTOCOL_VARIABLE_POWER:               if (uiChild == 1) {
+                                                        ESP_LOGI(TAG_DEVICE, "GET POWER");
+                                                        MEM_SendInfo(1, xVar, (double)METER_GetPower());
                                                     }
                                                     break;
         
