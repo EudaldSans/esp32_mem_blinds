@@ -1,7 +1,3 @@
-version = 21000333_D_2.1.6
-
-# ESP32 files
+version = 21000333_D_2.1.7
 ESP32_boot = ESP32_boot.bin
 ESP32_app = mem-blinds.bin
-
-# port, address, name, boot_file, address_offset, boot_delay, app_file, checksum_offset
