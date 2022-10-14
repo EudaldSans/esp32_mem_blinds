@@ -60,27 +60,6 @@ static uint8_t uiCntOverCurrent = 0;
 
     while (1)
     {
-        // ESP_LOGI(TAG_METER, "Instant Power: %f Voltage: %f Current: %f", HLW8012_GetInstantPower(), HLW8012_GetInstantVoltage(), HLW8012_GetInstantCurrent()/1000);
-        // ESP_LOGI(TAG_METER, "Mean Power: %f Voltage: %f Current: %f", METER_GetPower(), METER_GetVoltage(), METER_GetCurrent());
-        
-        
-        
-        if (METER_GetCurrent() > (float)MAX_HW_CURRENT) { 
-            ESP_LOGW(TAG_METER, "Max current detected"); 
-            if (uiCntOverCurrent) {
-                uiCntOverCurrent = 0;
-                bOverCurrentDetected = true; 
-                LOAD_Stop();
-            } else {
-                uiCntOverCurrent++;
-            }               
-        } else if (LOAD_IsStopped() == false) {
-            if (bOverCurrentDetected == true) bOverCurrentDetected = false; 
-            uiCntOverCurrent = 0;
-        } else {
-            uiCntOverCurrent = 0;
-        }
-
         if (METER_GetCurrent() > (float)MAX_HW_CURRENT) { 
             ESP_LOGW(TAG_METER, "Max current detected"); 
             uiCntOverCurrent++;
