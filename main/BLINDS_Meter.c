@@ -63,7 +63,7 @@ static uint8_t uiCntOverCurrent = 0;
         if (METER_GetCurrent() > (float)MAX_HW_CURRENT) { 
             ESP_LOGW(TAG_METER, "Max current detected"); 
             uiCntOverCurrent++;
-            if (uiCntOverCurrent == MAX_POWER_CNT_LIMIT) {
+            if (uiCntOverCurrent >= MAX_POWER_CNT_LIMIT) {
                 uiCntOverCurrent = 0;
                 bOverCurrentDetected = true; 
                 LOAD_Stop();
