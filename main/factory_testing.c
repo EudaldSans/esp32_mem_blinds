@@ -56,7 +56,7 @@ typedef enum {
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-bool _factorytest_webStart(SERVER_OBJ* xWebUi);
+bool _factorytest_webStart(SERVER_OBJ_t * xWebUi);
 TEST_STEPS factorytest_getState(void);
 char * _state_to_string(TEST_STEPS step);
 void _factorytest_taskLoop(void * xParams);
@@ -98,7 +98,7 @@ bool bSoftReset = false;
 
 /* CODE */
 /* ---- */
-bool _factorytest_webStart(SERVER_OBJ* xWebUi)
+bool _factorytest_webStart(SERVER_OBJ_t * xWebUi)
 {
     INFO("Initializing web server");
     if (HTTP_StartWebserver(xWebUi, FACTORY_TEST_HTTP_SERVER_ID, FACTORY_TEST_HTTP_PRIORITY, FACTORY_TEST_HTTP_PORT, 20) == true)
@@ -186,7 +186,7 @@ TEST_STEPS stateFromString(char * state)
 
 void _factorytest_taskLoop(void * xParams)
 {
-SERVER_OBJ xWebUi;
+SERVER_OBJ_t xWebUi;
 
     while(HTTP_IsInitiated(&xWebUi) != true){
         _factorytest_webStart(&xWebUi);
@@ -757,19 +757,19 @@ void TEST_WifiInit(void)
     //Init Wi-Fi
     ESP_LOGI(TAG_FACTORY_TESTING, "TEST_FactoryTestStart(%s)", _state_to_string(state));
     if(state == TEST_STEP0){
-        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK);
+        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK, WIFI_CHANNEL_ALL);
         ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP0_SSID);
     }
     else if(state == TEST_STEP1){
-        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP1_SSID, FACTORY_TEST_STEP1_PSK);
+        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP1_SSID, FACTORY_TEST_STEP1_PSK, WIFI_CHANNEL_ALL);
         ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP1_SSID);
     }
     else if(state == TEST_STEP2){
-        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP2_SSID, FACTORY_TEST_STEP2_PSK);
+        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP2_SSID, FACTORY_TEST_STEP2_PSK, WIFI_CHANNEL_ALL);
         ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP2_SSID);
     }
     else{
-        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK);
+        WIFI_Init(WIFI_MODE_MANAGED, FACTORY_TEST_STEP0_SSID, FACTORY_TEST_STEP0_PSK, WIFI_CHANNEL_ALL);
         ESP_LOGI(TAG_FACTORY_TESTING, "Connect to %s", FACTORY_TEST_STEP0_SSID);
     }
 }

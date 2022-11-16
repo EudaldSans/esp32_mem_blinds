@@ -42,8 +42,8 @@ typedef struct ButtonPulse_s {
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-static PULSE_OBJ xButtons[N_BUTTONS];
-WIFI_MODES mode_managed = WIFI_MODE_MANAGED;
+static PULSE_OBJ_t xButtons[N_BUTTONS];
+WIFI_MODES_t mode_managed = WIFI_MODE_MANAGED;
 bool mode_ap = false;
 
 /* EXTERNAL VARIABLES */
@@ -56,7 +56,7 @@ ButtonPulse_t pulsations[N_BUTTONS];
 static void start_ap_mode(){
     ESP_LOGI(TAG_BUTTON, "Start "FACTORY_TEST_AP_SSID" AP");
     WIFI_Disable();
-    WIFI_Init(WIFI_MODE_APS, FACTORY_TEST_AP_SSID, FACTORY_TEST_AP_PSK);      
+    WIFI_Init(WIFI_MODE_APS, FACTORY_TEST_AP_SSID, FACTORY_TEST_AP_PSK, WIFI_CHANNEL_ALL);      
     mode_ap = true;
 }
 

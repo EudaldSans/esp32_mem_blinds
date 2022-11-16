@@ -51,8 +51,8 @@ bool LOAD_IsCalibrating(void);
 bool LOAD_IsCalibrated(void);
 bool LOAD_IsStopped(void);
 
-bool LOAD_SetMode(BLIND_MODES xMode);
-BLIND_MODES LOAD_GetMode(void);
+bool LOAD_SetMode(BLIND_MODES_t xMode);
+BLIND_MODES_t LOAD_GetMode(void);
 bool LOAD_SetCheckEnd(bool bEnable);
 bool LOAD_GetCheckEnd(void);
 

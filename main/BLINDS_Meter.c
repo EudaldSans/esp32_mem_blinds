@@ -35,7 +35,7 @@
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-void _meter_protection_Task(void * xParams);
+static void _meter_protection_task(void * xParams);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -45,15 +45,14 @@ void _meter_protection_Task(void * xParams);
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-bool bOverCurrentDetected = false;
-TimerHandle_t xTimerMeter;
+static bool bOverCurrentDetected = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
-void _meter_protection_Task(void * xParams)
+static void _meter_protection_task(void * xParams)
 {
 static uint8_t uiCntOverCurrent = 0;
 // static uint8_t uiCntOverCustom = 0;
@@ -96,7 +95,7 @@ bool METER_Init(int iCore)
     NVS_Init();
     // Config power measures
     HLW8012_Config(HLW8012_SEL, BL0937, HLW8012_CF, HLW8012_CF1, HLW8012_VOLTAGE_PERIOD);
-    return xTaskCreatePinnedToCore(_meter_protection_Task, "_meter_protection_task", 3*1024, NULL, 5, NULL, iCore);
+    return xTaskCreatePinnedToCore(_meter_protection_task, "_meter_protection_task", 3*1024, NULL, 5, NULL, iCore);
     return true;
 }
 

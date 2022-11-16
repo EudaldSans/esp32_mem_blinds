@@ -15,7 +15,7 @@ typedef enum {
     FEEDBACK_IDLE_ON,
     FEEDBACK_IDLE_STATUS,
     FEEDBACK_NUM_IDLE_SIGNALS
-} FEEDBACK_IDLE_SIGNALS;
+} FEEDBACK_IDLE_SIGNALS_t;
 
 /* DEFINES */
 /* ------- */
@@ -41,8 +41,8 @@ void FEEDBACK_ErrorSignal(void);
 void FEEDBACK_MotionSignal(uint16_t uiTimeMs);
 void FEEDBACK_StopSignal(void);
 
-void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal);
-FEEDBACK_IDLE_SIGNALS FEEDBACK_GetIdleSignal(void);
+void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS_t xSignal);
+FEEDBACK_IDLE_SIGNALS_t FEEDBACK_GetIdleSignal(void);
 
 void FEEDBACK_EnableHideSignal(bool bEnable);
 bool FEEDBACK_HideSignalIsEnabled(void);

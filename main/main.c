@@ -33,8 +33,8 @@
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-void _dropout_before_callback(void);
-void _dropout_callback(uint64_t uiElapsedTime);
+static void _dropout_before_callback(void);
+static void _dropout_callback(uint64_t uiElapsedTime);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -44,15 +44,15 @@ void _dropout_callback(uint64_t uiElapsedTime);
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-bool bTriacStatus = false;
-bool bRelayStatus = false;
+static bool bTriacStatus = false;
+static bool bRelayStatus = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
-void _dropout_before_callback(void)
+static void _dropout_before_callback(void)
 {
     ESP_LOGW(TAG_MAIN, "Dropout detected...");
     bTriacStatus = GPIO_GetOutput(PIN_TRIAC_ON);
@@ -62,7 +62,7 @@ void _dropout_before_callback(void)
     GPIO_SetOutput(PIN_RELAY_UPDOWN, false);
 }
 
-void _dropout_callback(uint64_t uiElapsedTime)
+static void _dropout_callback(uint64_t uiElapsedTime)
 {
     ESP_LOGW(TAG_MAIN, "Dropout done...");
     GPIO_SetOutput(PIN_RELAY_UPDOWN, bRelayStatus);
