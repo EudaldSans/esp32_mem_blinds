@@ -92,7 +92,6 @@ static uint8_t uiCntOverCurrent = 0;
 bool METER_Init(int iCore)
 {
     ESP_LOGI(TAG_METER, "Initializing device...");
-    NVS_Init();
     // Config power measures
     HLW8012_Config(HLW8012_SEL, BL0937, HLW8012_CF, HLW8012_CF1, HLW8012_VOLTAGE_PERIOD);
     return xTaskCreatePinnedToCore(_meter_protection_task, "_meter_protection_task", 3*1024, NULL, 5, NULL, iCore);

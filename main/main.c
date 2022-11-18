@@ -18,7 +18,7 @@
 #include "BLINDS_Feedback.h"
 #include "BLINDS_Load.h"
 #include "BLINDS_Meter.h"
-#include "factory_testing.h"
+#include "BLINDS_Testing.h"
 
 #include "ges_nvs.h"
 #include "ges_debug.h"
@@ -95,7 +95,7 @@ esp_chip_info_t chip_info;
 
     NVS_Init(); NVS_WriteStrToModule("OTA", "FW", "21000333_D_2.1.9");
 
-    if(TEST_IsFactoryTestPassed() == true) {
+    if(TEST_IsPassed() == true) {
         if (MEM_StartComs(0, DEVICE_SetCmd, DEVICE_GetCmd, NULL, DEVICE_Reset) == false) ESP_LOGE(TAG_MAIN, "Error creating MEM Wireless coms\n");
         if (LOAD_Init(1) == false) ESP_LOGE(TAG_MAIN, "Error starting relays management");
         if (METER_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error initiating power measures & protecctions");
@@ -103,7 +103,7 @@ esp_chip_info_t chip_info;
         if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
         if (DROPOUT_Config(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE, 200, 0, _dropout_before_callback, _dropout_callback) == false) ESP_LOGE(TAG_MAIN, "Error starting dropout protection");
     } else {
-        if (TEST_FactoryTestStart() == false) ESP_LOGE(TAG_MAIN, "Error starting test task");
+        if (TEST_Init() == false) ESP_LOGE(TAG_MAIN, "Error starting test task");
     }
 
     DEBUG_Start();

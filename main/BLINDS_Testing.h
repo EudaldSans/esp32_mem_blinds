@@ -1,25 +1,23 @@
-#ifndef TEST_SYNC_H
-#define TEST_SYNC_H
+#ifndef _DIMMER_TESTING
+#define _DIMMER_TESTING
 
 /* INCLUDES */
 /* -------- */
-#include <stdint.h>
 #include <stdbool.h>
-#include "../BLINDS_Load.h"
+#include <stdint.h>
 
 /* TYPES */
 /* ----- */
 
 /* DEFINES */
-/* ------- */
+/* ------- */ 
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
 
 /* PUBLIC FUNCTIONS */
 /* ---------------- */
-bool SyncTest_Init(int iCore);
-float SyncTest_GetPeriod();
-float SyncTest_GetTon();
+bool TEST_Init(void);
+bool TEST_IsPassed(void);
 
 #endif
