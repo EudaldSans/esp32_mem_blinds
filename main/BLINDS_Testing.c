@@ -54,6 +54,9 @@ bool TEST_Init(void)
     // Sync
     FACTORY_ConfigSync(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK);
 
+    // Blind
+    FACTORY_ConfigBlind(PIN_TRIAC_ON, PIN_RELAY_UPDOWN);
+
     // Metering
     METER_Init(CONFIG_TEST_METER_CORE);
     FACTORY_ConfigGetPowerCallback(HLW8012_GetMeanPower);
