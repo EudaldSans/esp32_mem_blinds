@@ -58,7 +58,7 @@ bool TEST_Init(void)
     FACTORY_ConfigBlind(PIN_TRIAC_ON, PIN_RELAY_UPDOWN);
 
     // Metering
-    METER_Init(CONFIG_TEST_METER_CORE);
+    HLW8012_Config(HLW8012_SEL, BL0937, HLW8012_CF, HLW8012_CF1, HLW8012_VOLTAGE_PERIOD);
     FACTORY_ConfigGetPowerCallback(HLW8012_GetMeanPower);
     FACTORY_ConfigGetCurrentCallback(HLW8012_GetMeanCurrent);
     FACTORY_ConfigGetVoltageCallback(HLW8012_GetMeanVoltage);

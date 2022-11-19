@@ -1,5 +1,5 @@
-#ifndef _DIMMER_TESTING
-#define _DIMMER_TESTING
+#ifndef _BLINDS_TESTING
+#define _BLINDS_TESTING
 
 /* INCLUDES */
 /* -------- */
