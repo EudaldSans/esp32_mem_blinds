@@ -44,12 +44,12 @@
 bool TEST_Init(void)
 {
     // Buttons
-    FACTORY_ConfigButton(0, FACTORY_BUTTON_PUSH, PIN_INPUT_UP, false, GPIO_INPUT_PULLUP, 0, 0);
-    FACTORY_ConfigButton(1, FACTORY_BUTTON_PUSH, PIN_INPUT_DOWN, false, GPIO_INPUT_PULLUP, 0, 0);
+    FACTORY_ConfigButton(FACTORY_BUTTON_PUSH, PIN_INPUT_UP, false, GPIO_INPUT_PULLUP, 0, 0);
+    FACTORY_ConfigButton(FACTORY_BUTTON_PUSH, PIN_INPUT_DOWN, false, GPIO_INPUT_PULLUP, 0, 0);
 
     // Leds
-    FACTORY_ConfigLed(0, PIN_LED_UP, true);
-    FACTORY_ConfigLed(1, PIN_LED_DOWN, true);
+    FACTORY_ConfigLed(PIN_LED_UP, true);
+    FACTORY_ConfigLed(PIN_LED_DOWN, true);
     
     // Sync
     FACTORY_ConfigSync(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK);
@@ -66,6 +66,9 @@ bool TEST_Init(void)
     FACTORY_ConfigGetKiCallback(HLW8012_GetKi); FACTORY_ConfigSetKiCallback(HLW8012_SetKi);
     FACTORY_ConfigGetKvCallback(HLW8012_GetKv); FACTORY_ConfigSetKvCallback(HLW8012_SetKv);
     FACTORY_ConfigCalibrateCallback(HLW8012_Calibrate);
+
+    // RF
+    FACTORY_ConfigRf(true, true);
 
     TEST_FactoryTestStart();
     return true;
