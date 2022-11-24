@@ -59,9 +59,9 @@ bool TEST_Init(void)
 
     // Metering
     HLW8012_Config(HLW8012_SEL, BL0937, HLW8012_CF, HLW8012_CF1, HLW8012_VOLTAGE_PERIOD);
-    FACTORY_ConfigGetPowerCallback(HLW8012_GetMeanPower);
-    FACTORY_ConfigGetCurrentCallback(HLW8012_GetMeanCurrent);
-    FACTORY_ConfigGetVoltageCallback(HLW8012_GetMeanVoltage);
+    FACTORY_ConfigGetPowerCallback(METER_GetPower);
+    FACTORY_ConfigGetCurrentCallback(METER_GetCurrent);
+    FACTORY_ConfigGetVoltageCallback(METER_GetVoltage);
     FACTORY_ConfigGetKpCallback(HLW8012_GetKp); FACTORY_ConfigSetKpCallback(HLW8012_SetKp);
     FACTORY_ConfigGetKiCallback(HLW8012_GetKi); FACTORY_ConfigSetKiCallback(HLW8012_SetKi);
     FACTORY_ConfigGetKvCallback(HLW8012_GetKv); FACTORY_ConfigSetKvCallback(HLW8012_SetKv);
