@@ -51,8 +51,8 @@ bool TEST_Init(void)
     FACTORY_ConfigButton(FACTORY_BUTTON_PUSH, PIN_INPUT_UP, false, GPIO_INPUT_PULLUP, 0, 0);
 
     // Leds
-    FACTORY_ConfigLed(PIN_LED_UP, true);
     FACTORY_ConfigLed(PIN_LED_DOWN, true);
+    FACTORY_ConfigLed(PIN_LED_UP, true);
     
     // Sync
     FACTORY_ConfigSync(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE_CHECK);
