@@ -47,8 +47,8 @@ static float _test_get_voltage(void)        { return HLW8012_GetMeanVoltage(); }
 bool TEST_Init(void)
 {
     // Buttons
-    FACTORY_ConfigButton(FACTORY_BUTTON_PUSH, PIN_INPUT_UP, false, GPIO_INPUT_PULLUP, 0, 0);
     FACTORY_ConfigButton(FACTORY_BUTTON_PUSH, PIN_INPUT_DOWN, false, GPIO_INPUT_PULLUP, 0, 0);
+    FACTORY_ConfigButton(FACTORY_BUTTON_PUSH, PIN_INPUT_UP, false, GPIO_INPUT_PULLUP, 0, 0);
 
     // Leds
     FACTORY_ConfigLed(PIN_LED_UP, true);

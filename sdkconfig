@@ -1459,32 +1459,6 @@ CONFIG_PULSE_TASK_PRIORITY=5
 # SIMON DALI
 #
 # CONFIG_SIMON_ENABLE_DALI is not set
-CONFIG_DALI_RX_POSSITIVE_LOGIC=y
-CONFIG_DALI_TX_POSSITIVE_LOGIC=y
-CONFIG_DALI_DEFAULT_FALL_TIME=44
-CONFIG_DALI_DEFAULT_RISE_TIME=27
-
-#
-# Control Device
-#
-
-#
-# Instances
-#
-# end of Instances
-# end of Control Device
-
-#
-# Control Gear
-#
-
-#
-# IEC 62386 parts
-#
-# CONFIG_DALI_207_PART is not set
-# CONFIG_DALI_209_PART is not set
-# end of IEC 62386 parts
-# end of Control Gear
 # end of SIMON DALI
 
 #
