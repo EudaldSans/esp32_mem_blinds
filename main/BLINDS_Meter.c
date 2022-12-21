@@ -35,7 +35,7 @@
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-void _meter_protection_Task(void * xParams);
+static void _meter_protection_task(void * xParams);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -45,46 +45,24 @@ void _meter_protection_Task(void * xParams);
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-bool bOverCurrentDetected = false;
-TimerHandle_t xTimerMeter;
+static bool bOverCurrentDetected = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
-void _meter_protection_Task(void * xParams)
+static void _meter_protection_task(void * xParams)
 {
 static uint8_t uiCntOverCurrent = 0;
 // static uint8_t uiCntOverCustom = 0;
 
     while (1)
     {
-        // ESP_LOGI(TAG_METER, "Instant Power: %f Voltage: %f Current: %f", HLW8012_GetInstantPower(), HLW8012_GetInstantVoltage(), HLW8012_GetInstantCurrent()/1000);
-        // ESP_LOGI(TAG_METER, "Mean Power: %f Voltage: %f Current: %f", METER_GetPower(), METER_GetVoltage(), METER_GetCurrent());
-        
-        
-        
-        if (METER_GetCurrent() > (float)MAX_HW_CURRENT) { 
-            ESP_LOGW(TAG_METER, "Max current detected"); 
-            if (uiCntOverCurrent) {
-                uiCntOverCurrent = 0;
-                bOverCurrentDetected = true; 
-                LOAD_Stop();
-            } else {
-                uiCntOverCurrent++;
-            }               
-        } else if (LOAD_IsStopped() == false) {
-            if (bOverCurrentDetected == true) bOverCurrentDetected = false; 
-            uiCntOverCurrent = 0;
-        } else {
-            uiCntOverCurrent = 0;
-        }
-
         if (METER_GetCurrent() > (float)MAX_HW_CURRENT) { 
             ESP_LOGW(TAG_METER, "Max current detected"); 
             uiCntOverCurrent++;
-            if (uiCntOverCurrent == MAX_POWER_CNT_LIMIT) {
+            if (uiCntOverCurrent >= MAX_POWER_CNT_LIMIT) {
                 uiCntOverCurrent = 0;
                 bOverCurrentDetected = true; 
                 LOAD_Stop();
@@ -114,10 +92,9 @@ static uint8_t uiCntOverCurrent = 0;
 bool METER_Init(int iCore)
 {
     ESP_LOGI(TAG_METER, "Initializing device...");
-    NVS_Init();
     // Config power measures
     HLW8012_Config(HLW8012_SEL, BL0937, HLW8012_CF, HLW8012_CF1, HLW8012_VOLTAGE_PERIOD);
-    return xTaskCreatePinnedToCore(_meter_protection_Task, "_meter_protection_task", 3*1024, NULL, 5, NULL, iCore);
+    return xTaskCreatePinnedToCore(_meter_protection_task, "_meter_protection_task", 3*1024, NULL, 5, NULL, iCore);
     return true;
 }
 

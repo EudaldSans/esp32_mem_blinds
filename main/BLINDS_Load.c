@@ -25,7 +25,7 @@ typedef enum {
     BLIND_MOTION_UP,
     BLIND_MOTION_DOWN,
     BLIND_MOTION_NUM_SENSES
-} BLIND_MOTION_SENSES;
+} BLIND_MOTION_SENSES_t;
 
 /* DEFINES */
 /* ------- */
@@ -40,12 +40,12 @@ typedef enum {
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-void _blinds_Task(void * xParams);
-void _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs);
-void _turn_on_triac(void);
-bool _check_end(void);
-bool _save_level_blinds(uint8_t uiLevel);
-void _motion_sense(BLIND_MOTION_SENSES xSense);
+static void _blinds_task(void * xParams);
+static void _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs);
+static void _turn_on_triac(void);
+static bool _check_end(void);
+static bool _save_level_blinds(uint8_t uiLevel);
+static void _motion_sense(BLIND_MOTION_SENSES_t xSense);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -55,42 +55,39 @@ void _motion_sense(BLIND_MOTION_SENSES xSense);
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-// xRELAY_t xReleUp;
-// xRELAY_t xReleDown;
-BLINDS_CLASS xBlind1;
-xSIGNAL_t xSignalTriac;
-// POLLTIMER xTimerNotify;
+static BLINDS_CLASS_t xBlind1;
+static xSIGNAL_t xSignalTriac;
 
-bool bStatusUp = false;
-bool bStatusDown = false;
-bool bCheckEnd1 = DEFAULT_CHECK_END;
-uint8_t uiLevelBlind1;
-uint64_t uiRiseBlind1;
-uint64_t uiFallBlind1;
-bool bCalibratedBlind1;
-bool bNotifyEndCalib1 = false;
-uint8_t uiLastNotificatedLevel;
+static bool bStatusUp = false;
+static bool bStatusDown = false;
+static bool bCheckEnd1 = DEFAULT_CHECK_END;
+static uint8_t uiLevelBlind1;
+static uint64_t uiRiseBlind1;
+static uint64_t uiFallBlind1;
+static bool bCalibratedBlind1;
+static bool bNotifyEndCalib1 = false;
+static uint8_t uiLastNotificatedLevel;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
-void IRAM_ATTR _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs)
+static void IRAM_ATTR _isr_triac(bool bValid, uint64_t uiPeriod, uint64_t uiMeanPeriod, void *pArgs)
 {
     if (bValid == true) { 
         GPIO_SetOutput(PIN_TRIAC_ON, false);
     }
 }
 
-void _turn_on_triac(void)
+static void _turn_on_triac(void)
 {
     if (GPIO_GetOutput(PIN_TRIAC_ON) == false) return;
     SIGNAL_SetVoltageCallback(SIGNAL_GetByPin(PIN_SINCRO), SIGNAL_CALLBACK_HIGH_PRIORITY_5, SIGNALCallbackOnZeroCrossing, _isr_triac, NULL); TMR_delay(50*TIMER_MSEG); 
     if (GPIO_GetOutput(PIN_TRIAC_ON) == true) { ESP_LOGW(TAG_LOAD, "Triac turn on without sincro"); GPIO_SetOutput(PIN_TRIAC_ON, false); }
 }
 
-bool _check_end(void)
+static bool _check_end(void)
 {
 static bool bDetectedEnd = false;
 static uint8_t uiEndCycles = 0;
@@ -113,7 +110,7 @@ static uint8_t uiEndCycles = 0;
     return false;
 }
 
-bool _save_level_blinds(uint8_t uiLevel)
+static bool _save_level_blinds(uint8_t uiLevel)
 {
     if (uiLevelBlind1 != uiLevel) {
         if (NVS_WriteInt8(NVM_KEY_LEVEL, uiLevel) == true) {
@@ -128,7 +125,7 @@ bool _save_level_blinds(uint8_t uiLevel)
     return true;
 }
 
-void _motion_sense(BLIND_MOTION_SENSES xSense)
+static void _motion_sense(BLIND_MOTION_SENSES_t xSense)
 {
     switch (xSense)
     {
@@ -148,11 +145,11 @@ void _motion_sense(BLIND_MOTION_SENSES xSense)
     }
 }
 
-void _blinds_Task(void * xParams)
+static void _blinds_task(void * xParams)
 {
 bool bTempUp, bTempDown;
-BLIND_STATES xTempStatus;
-static BLIND_STATES xLastStatus = BLIND_STOPPED;
+BLIND_STATES_t xTempStatus;
+static BLIND_STATES_t xLastStatus = BLIND_STOPPED;
 uint8_t uiTempLevel;
 
     while(1)
@@ -237,7 +234,7 @@ uint8_t uiData8;
     if (NVS_ReadInt64(NVM_KEY_RISE, &uiRiseBlind1) == false) uiRiseBlind1 = DEFAULT_RISE_TIME;
     if (NVS_ReadInt64(NVM_KEY_FALL, &uiFallBlind1) == false) uiFallBlind1 = DEFAULT_FALL_TIME;
     if (NVS_ReadInt8(NVM_KEY_MODE, &uiData8) == false) uiData8 = (uint8_t)DEFAULT_BLIND_MODE;
-    BLINDS_Start(uiLevelBlind1, (BLIND_MODES)uiData8, uiRiseBlind1, uiFallBlind1, bCalibratedBlind1, &xBlind1);
+    BLINDS_Start(uiLevelBlind1, (BLIND_MODES_t)uiData8, uiRiseBlind1, uiFallBlind1, bCalibratedBlind1, &xBlind1);
     
     uiLastNotificatedLevel = uiLevelBlind1;
     ESP_LOGI(TAG_LOAD, "BLIND Initial level %d", uiLevelBlind1);
@@ -245,7 +242,7 @@ uint8_t uiData8;
     ESP_LOGI(TAG_LOAD, "BLIND Initial mode %d", uiData8);
     ESP_LOGI(TAG_LOAD, "BLIND Initial rise %lld fall %lld", uiRiseBlind1, uiFallBlind1);
 
-    return xTaskCreatePinnedToCore(_blinds_Task, "blinds_task", 3*1024, NULL, 5, NULL, iCore);
+    return xTaskCreatePinnedToCore(_blinds_task, "blinds_task", 3*1024, NULL, 5, NULL, iCore);
     return true;
 }
 
@@ -257,7 +254,7 @@ bool LOAD_Calibrate(void)                               { BLINDS_StartCalibratio
 bool LOAD_Regulate(uint8_t uiPercentatge)               { BLINDS_Specific(&xBlind1, uiPercentatge); return true; }
 uint8_t LOAD_GetPercentatge(void)                       { return BLINDS_GetLevel(&xBlind1); }
 
-BLIND_MODES LOAD_GetMode(void)                          { return BLINDS_GetMode(&xBlind1); }
+BLIND_MODES_t LOAD_GetMode(void)                        { return BLINDS_GetMode(&xBlind1); }
 bool LOAD_GetCheckEnd(void)                             { return bCheckEnd1; }
 
 uint64_t LOAD_GetRiseTime(void)                         { return BLINDS_GetRiseTime(&xBlind1); }
@@ -288,7 +285,7 @@ bool LOAD_IsStopped(void)
     return BLINDS_IsStopped(&xBlind1);
 }
 
-bool LOAD_SetMode(BLIND_MODES xMode)
+bool LOAD_SetMode(BLIND_MODES_t xMode)
 {
     if (BLINDS_GetMode(&xBlind1) != xMode) {
         if (NVS_WriteInt8(NVM_KEY_MODE, (uint8_t)xMode) == false) { ESP_LOGE(TAG_LOAD, "Fail saving mode"); return false; }

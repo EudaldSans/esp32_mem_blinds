@@ -22,7 +22,7 @@
 //#define PIN_SRS                     32
 //#define VREF_LEVEL                  1650
 
-#define CAREER_CYCLES               5
+#define CAREER_CYCLES               10
 
 // #define TIME_NOTIFY_STATUS          (2*TIMER_SEG)
 #define DEFAULT_BLIND_MODE          BLIND_MODE_STDBLIND
@@ -51,8 +51,8 @@ bool LOAD_IsCalibrating(void);
 bool LOAD_IsCalibrated(void);
 bool LOAD_IsStopped(void);
 
-bool LOAD_SetMode(BLIND_MODES xMode);
-BLIND_MODES LOAD_GetMode(void);
+bool LOAD_SetMode(BLIND_MODES_t xMode);
+BLIND_MODES_t LOAD_GetMode(void);
 bool LOAD_SetCheckEnd(bool bEnable);
 bool LOAD_GetCheckEnd(void);
 

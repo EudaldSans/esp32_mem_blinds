@@ -36,7 +36,7 @@
 
 /* INTERNAL FUNCTIONS */
 /* ------------------ */
-void _feedback_signal_Task(void * xParams);
+static void _feedback_signal_task(void * xParams);
 
 /* EXTERNAL FUNCTIONS */
 /* ------------------ */
@@ -46,20 +46,20 @@ void _feedback_signal_Task(void * xParams);
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-xMTX_t xFeedbackMtx = MTX_INIT_CONFIG_DEFAULT;
+static xMTX_t xFeedbackMtx = MTX_INIT_CONFIG_DEFAULT;
 static xLED_t xLedUp;
 static xLED_t xLedDown;
-FEEDBACK_IDLE_SIGNALS xIdleSignal;
-bool bEnableHideSignal = true;
-POLLTIMER xTimerSignal;
-bool bMotionSignal = false;
+static FEEDBACK_IDLE_SIGNALS_t xIdleSignal;
+static bool bEnableHideSignal = true;
+static POLLTIMER_t xTimerSignal;
+static bool bMotionSignal = false;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
-void _feedback_signal_Task(void * xParams)
+static void _feedback_signal_task(void * xParams)
 {
     while (1)
     {
@@ -118,7 +118,7 @@ bool FEEDBACK_Init(int iCore)
     if (NVS_ReadBoolean(NVM_KEY_HIDE_SIGNAL, &bEnableHideSignal) == false) bEnableHideSignal = DEFAULT_FEEDBACK_HIDE;
     if (LED_ConfigSTD(&xLedUp, PIN_LED_UP, true, FADETIME_LEDS) == false) return false;
     if (LED_ConfigSTD(&xLedDown, PIN_LED_DOWN, true, FADETIME_LEDS) == false) return false;
-    return xTaskCreatePinnedToCore(_feedback_signal_Task, "feedback_task", 2048, NULL, 5, NULL, iCore);
+    return xTaskCreatePinnedToCore(_feedback_signal_task, "feedback_task", 2048, NULL, 5, NULL, iCore);
     return true;	
 }
 
@@ -184,7 +184,7 @@ void FEEDBACK_StopSignal(void)
     MTX_Unlock(&xFeedbackMtx);
 }
 
-void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal)
+void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS_t xSignal)
 {
     if (xSignal != xIdleSignal) {
         if (NVS_WriteInt8(NVM_LED_IDLE_SIGNAL, (int8_t)xSignal) == false) { ESP_LOGE(TAG_FEEDBACK, "Fail saving IDLE SIGNAL"); return; }
@@ -192,7 +192,7 @@ void FEEDBACK_SetIdleSignal(FEEDBACK_IDLE_SIGNALS xSignal)
     }
 }
 
-FEEDBACK_IDLE_SIGNALS FEEDBACK_GetIdleSignal(void)      { return xIdleSignal; }
+FEEDBACK_IDLE_SIGNALS_t FEEDBACK_GetIdleSignal(void)      { return xIdleSignal; }
 
 void FEEDBACK_EnableHideSignal(bool bEnable)
 {

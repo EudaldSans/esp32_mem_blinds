@@ -1,5 +1,0 @@
-menu "FACTORY_TEST"
-    config STACK_FACTORY_TESTING
-        int "Stack assigned for the factory test task"
-        default 8192
-endmenu

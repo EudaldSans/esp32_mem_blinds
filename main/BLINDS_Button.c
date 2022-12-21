@@ -44,10 +44,10 @@ static void _button_down_callback(bool bComplete, uint64_t uiTime);
 
 /* INTERNAL VARIABLES */
 /* ------------------ */
-static PULSE_OBJ xButtonUp;
-static PULSE_OBJ xButtonDown;
+static PULSE_OBJ_t xButtonUp;
+static PULSE_OBJ_t xButtonDown;
 
-bool bLockButton = DEFAULT_LOCK_BUTTON;
+static bool bLockButton = DEFAULT_LOCK_BUTTON;
 
 /* EXTERNAL VARIABLES */
 /* ------------------ */
