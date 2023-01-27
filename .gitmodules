@@ -5,3 +5,6 @@
 [submodule "fvad_components"]
 	path = fvad_components
 	url = git@github.com:EudaldSans/fvad_components.git
+[submodule "libfvad"]
+	path = libfvad
+	url = git@github.com:EudaldSans/libfvad.git
