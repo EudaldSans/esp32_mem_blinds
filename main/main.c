@@ -24,6 +24,13 @@
 #include "ges_debug.h"
 #include "ges_dropout.h"
 
+#include "MEM_Wifi.h"
+
+#include "audio_buffers.h"
+#include "analysis.h"
+#include "recorder.h"
+#include "events.h"
+
 /* TYPES */
 /* ----- */
 
@@ -47,13 +54,16 @@ static void _dropout_callback(uint64_t uiElapsedTime);
 static bool bTriacStatus = false;
 static bool bRelayStatus = false;
 
+audio_buffer_handle_t audio_buffers;
+TaskHandle_t recorder_task_handle = NULL;
+TaskHandle_t analysis_task_handle = NULL;
+
 /* EXTERNAL VARIABLES */
 /* ------------------ */
 
 /* CODE */
 /* ---- */
-static void _dropout_before_callback(void)
-{
+static void _dropout_before_callback(void) {
     ESP_LOGW(TAG_MAIN, "Dropout detected...");
     bTriacStatus = GPIO_GetOutput(PIN_TRIAC_ON);
     bRelayStatus = GPIO_GetOutput(PIN_RELAY_UPDOWN);
@@ -62,8 +72,7 @@ static void _dropout_before_callback(void)
     GPIO_SetOutput(PIN_RELAY_UPDOWN, false);
 }
 
-static void _dropout_callback(uint64_t uiElapsedTime)
-{
+static void _dropout_callback(uint64_t uiElapsedTime) {
     ESP_LOGW(TAG_MAIN, "Dropout done...");
     GPIO_SetOutput(PIN_RELAY_UPDOWN, bRelayStatus);
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -71,8 +80,7 @@ static void _dropout_callback(uint64_t uiElapsedTime)
     MEM_Reconnect();
 }
 
-void app_main(void)
-{
+void app_main(void) {
 esp_chip_info_t chip_info;
     
     printf("New project in branch aml...\n");
@@ -102,6 +110,20 @@ esp_chip_info_t chip_info;
         if (BUTTON_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting buttons management");
         if (FEEDBACK_Init(0) == false) ESP_LOGE(TAG_MAIN, "Error starting feedback management");
         if (DROPOUT_Config(PIN_SINCRO, GPIO_INPUT_PULLOFF, GPIO_INPUT_INTERRUPT_RISE, 200, 0, _dropout_before_callback, _dropout_callback) == false) ESP_LOGE(TAG_MAIN, "Error starting dropout protection");
+
+        while(!MWIFI_IsReady()){
+            vTaskDelay(1000/portTICK_RATE_MS);
+        }
+
+        ESP_LOGI(TAG_MAIN, "WiFi connected!");
+        recorder_init();
+        events_init();
+        connect_init();
+
+        audio_buffers = audio_buffers_init(AUDIO_FRAME_SAMPLES * MIC_CH_NUM * (MIC_MODULATION_IS_PCM ? sizeof(int32_t) : sizeof(int16_t)), &recorder_task_handle, &analysis_task_handle);
+
+        xTaskCreate(recorder_task, "RECORDER_TASK", 4*4096, (void *) audio_buffers, 5, &recorder_task_handle);
+        xTaskCreate(analysis_task, "ANALYSIS_TASK", 4*8096, (void *) audio_buffers, 5, &analysis_task_handle);
     } else {
         if (TEST_Init() == false) ESP_LOGE(TAG_MAIN, "Error starting test task");
     }

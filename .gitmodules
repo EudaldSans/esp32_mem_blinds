@@ -2,3 +2,6 @@
 	path = simon
 	url = ssh://git@git.simon-cloud.com:27/rainbow/esp32_common.git
 	branch = develop
+[submodule "fvad_components"]
+	path = fvad_components
+	url = git@github.com:EudaldSans/fvad_components.git

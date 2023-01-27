@@ -21,8 +21,8 @@
 
 /* DEFINES */
 /* ------- */
-#define PIN_INPUT_UP                15//10
-#define PIN_INPUT_DOWN              19
+#define PIN_INPUT_UP                39
+#define PIN_INPUT_DOWN              38
 
 #define DEFAULT_LOCK_BUTTON         false
 
