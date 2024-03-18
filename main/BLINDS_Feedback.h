@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "sdkconfig.h"
+
 #include "MEM_Definitions.h"
 
 /* TYPES */
@@ -19,8 +21,17 @@ typedef enum {
 
 /* DEFINES */
 /* ------- */
+#ifdef CONFIG_PROTO_A
+
 #define PIN_LED_UP                  12
-#define PIN_LED_DOWN                15
+#define PIN_LED_DOWN                23
+
+#else
+
+#define PIN_LED_UP                  12
+#define PIN_LED_DOWN                15   
+
+#endif
 
 #define FADETIME_LEDS               0     // Time in ms
 #define DEFAULT_IDLE_SIGNAL         FEEDBACK_IDLE_OFF

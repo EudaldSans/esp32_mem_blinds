@@ -21,8 +21,17 @@
 
 /* DEFINES */
 /* ------- */
+#ifdef CONFIG_PROTO_A
+
+#define PIN_INPUT_UP                10
+#define PIN_INPUT_DOWN              19
+
+#else
+
 #define PIN_INPUT_UP                39
 #define PIN_INPUT_DOWN              38
+
+#endif
 
 #define DEFAULT_LOCK_BUTTON         false
 
